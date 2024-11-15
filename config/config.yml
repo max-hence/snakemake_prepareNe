@@ -1,0 +1,12 @@
+# Config
+vcf_path: "/groups/plantlp/ne/data/Example/vcf/toy_example.vcf.gz"
+fai_path: "/groups/plantlp/ne/data/Example/chr_length.fai"
+final_prefix: "toy_example"
+easySFS_path: "/home/genouest/cnrs_umr6553/mbrault/plantlp/softwares/easySFS/easySFS.py"
+stairway_plot_dir: "/home/genouest/cnrs_umr6553/mbrault/plantlp/softwares/strway_plot/stairway_plot_es"
+smcpp: "home/genouest/cnrs_umr6553/mbrault/plantlp/softwares/smcpp/smcpp.sif"
+mutation_rate: 7e-9
+
+recombination: True
+stop: True
+recmap: "/groups/plantlp/ne/data/Example/map/toy_example.gendist.rec"

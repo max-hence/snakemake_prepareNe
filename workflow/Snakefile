@@ -1,0 +1,30 @@
+configfile: "config/config.yml"
+
+# Classic filter
+include: "rules/common.smk"
+include: "rules/filter_callability.smk"
+include: "rules/prepare_strway_plot.smk"
+include: "rules/prepare_smcpp.smk"
+include: "rules/prepare_vcf.smk"
+
+# Recombination filter
+include: "rules/recmap.smk"
+include: "rules/prepare_rec_Neinputs.smk"
+
+module density:
+    snakefile:
+        "modules/gene_density/Snakefile"
+    config:
+        config
+use rule * from density as density_*
+
+# Force chr name matching in paths
+wildcard_constraints:
+    chr = "|".join(get_chr_list(config["fai_path"])),
+    prefix = config["final_prefix"],
+    rec_quant = "|".join(["rec1","rec2","rec3"]) # 1 = < 33%, 2 = >33% et <66%, 3= > 66%
+
+
+rule all:
+    input:
+        get_output()
