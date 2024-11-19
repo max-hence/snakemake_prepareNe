@@ -17,7 +17,7 @@ rule gene_density:
 
     input:
         gff = "results/geneD/{prefix}.{chr}.gff",
-        script = "../scripts/get_gene_density.py"
+        script = "/shared/projects/plant_lewontin_paradox/vcf_processing/scripts/snakemake_prepareNe/workflow/modules/gene_density/scripts/get_gene_density.py"
     output:
         density = "results/geneD/{prefix}.{chr}.geneD"
     conda:
@@ -33,7 +33,7 @@ rule gene_density:
 rule geneD_to_bed:
     input:
         density = "results/geneD/{prefix}.{chr}.geneD",
-        script = "/groups/plantlp/vcf_processing/scripts/snakemake_prepareNe/workflow/modules/gene_density/scripts/geneD_to_bed.py"
+        script = "/shared/projects/plant_lewontin_paradox/vcf_processing/scripts/snakemake_prepareNe/workflow/modules/gene_density/scripts/geneD_to_bed.py"
     output:
         low_bed = "results/geneD/{prefix}.lowD.{chr}.bed",
         high_bed = "results/geneD/{prefix}.highD.{chr}.bed"

@@ -25,7 +25,6 @@ def geneD2bed(geneD_path:str, output_bed:str, low_range:int=0, up_range:int=100)
     #print(density_quantiles[0], density_quantiles[1])
     # writes bed file
     with open(output_bed, "w") as bedfile:
-        # bedfile.write("chrom\tchromStart\tchromEnd\n") # header
         start_intervall = None
         for _, row in geneD_df.iterrows():
             new_start, new_end, density = int(round(row["start"])), int(row["end"]), int(row["density"])

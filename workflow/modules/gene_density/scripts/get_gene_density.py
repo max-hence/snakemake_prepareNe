@@ -12,7 +12,6 @@ def get_gene_density(gff_path:str, window_size:int, tbl_path:str):
     window_size = int(window_size)
     annotation_gff = gffpd.read_gff3(gff_path)
     genes_gff = annotation_gff.filter_feature_of_type(['gene']).df
-    print(genes_gff)
     genes_gff.loc[:, 'start'] = genes_gff.loc[:, 'start'] // window_size
     gene_density = genes_gff.groupby('start').size().reset_index(name='density')
     gene_density["start"] = gene_density["start"] * window_size
