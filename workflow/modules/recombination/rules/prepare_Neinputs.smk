@@ -1,22 +1,26 @@
-# Prepare inputs files for stairway_plot and smc++
+# Prepare inputs files for stairway_plot and smc++ for vcf filter on recombination
+
+include: "common.smk"
+mu = config["mutation_rate"]
+generation = config["generation_time"]
 
     #####################
     ### Stairway Plot ###
     #####################
 
-rule sfs_rec:
+rule sfs:
     """
         Run easySFS with best param values
     """
     input:
-        vcf = "results/vcf/rec/{prefix}.{rec_quant}.320kSNP.{chr}.vcf",
+        vcf = "results/vcf/rec/{prefix}.{rec}.rdmSNP.{chr}.vcf",
         pop_path = "results/{prefix}.pop",
-        best_sample = "results/sfs/rec/{prefix}.{rec_quant}.best_sample.txt",
-        fai = "results/stats/rec/ml/{prefix}.{rec_quant}.320kSNP.{chr}.fai", # for chr length
+        best_sample = "results/sfs/rec/{prefix}.{rec}.best_sample.txt",
+        fai = "results/stats/rec/{prefix}.{rec}.rdmSNP.{chr}.fai", # for chr length
         easySFS = config["easySFS_path"]
     output:
-        sfs_dir = temp(directory("results/sfs/rec/{rec_quant}/{prefix}.{rec_quant}.{chr}")),
-        final_sfs = "results/sfs/rec/{rec_quant}/{prefix}.{rec_quant}.{chr}.sfs"
+        sfs_dir = temp(directory("results/sfs/rec/{rec}/{prefix}.{rec}.{chr}")),
+        final_sfs = "results/sfs/rec/{rec}/{prefix}.{rec}.{chr}.sfs"
     conda:
         "../envs/easySFS.yml"
     shell:
@@ -37,15 +41,15 @@ rule sfs_rec:
                 > {output.final_sfs}
         """
 
-rule plot_sfs_rec:
+rule plot_sfs:
     """
         Plot SFS
     """
     input:
-        sfs = "results/sfs/rec/{rec_quant}/{prefix}.{rec_quant}.{chr}.sfs",
-        script = "/groups/plantlp/vcf_processing/scripts/snakemake_prepareNe/workflow/scripts/plot_sfs.py"
+        sfs = "results/sfs/rec/{rec}/{prefix}.{rec}.{chr}.sfs",
+        script =  workflow.source_path("../scripts/plot_sfs.py")
     output:
-        sfs_plot = "results/sfs/rec/{rec_quant}/{prefix}.{rec_quant}.{chr}.png"
+        sfs_plot = "results/sfs/rec/{rec}/{prefix}.{rec}.{chr}.png"
     conda:
         "../envs/vcf_processing.yml"
     shell:
@@ -53,16 +57,16 @@ rule plot_sfs_rec:
             python3 {input.script} -i {input.sfs} -o {output.sfs_plot}
         """
 
-rule prepare_strway_plot_rec:
+rule prepare_strway_plot:
     """
         Writes inputs for StairwayPlot
     """
     input:
-        sfs = "results/sfs/rec/{rec_quant}/{prefix}.{rec_quant}.{chr}.sfs",
-        fai = "results/stats/rec/ml/{prefix}.{rec_quant}.320kSNP.{chr}.fai", # for chr length
+        sfs = "results/sfs/rec/{rec}/{prefix}.{rec}.{chr}.sfs",
+        fai = "results/stats/rec/{prefix}.{rec}.rdmSNP.{chr}.fai", # for chr length
         stairway_plot_dir = config["stairway_plot_dir"],
     output:
-        blueprint = "results/ne_inference/strway_plt/rec/{rec_quant}/{prefix}.{rec_quant}.{chr}.blueprint"
+        blueprint = "results/ne_inference/strway_plt/rec/{rec}/{prefix}.{rec}.{chr}.blueprint"
     shell:
         """
             n_seq=$(( $(wc -w < {input.sfs}) * 2))
@@ -77,13 +81,13 @@ smallest_size_of_SFS_bin_used_for_estimation: 1
 largest_size_of_SFS_bin_used_for_estimation: $((n_seq/2 - 1))
 pct_training: 0.67
 nrand: $(((n_seq-2)/4))	$(((n_seq-2)/2))	$(((n_seq-2)*3/4))	$((n_seq-2))
-project_dir: $(pwd)/results/stairway_plot/rec/{wildcards.rec_quant}/{wildcards.prefix}.{wildcards.rec_quant}.{wildcards.chr}/
+project_dir: $(pwd)/results/stairway_plot/rec/{wildcards.rec}/{wildcards.prefix}.{wildcards.rec}.{wildcards.chr}/
 stairway_plot_dir: {input.stairway_plot_dir}
 ninput: 200
 #random_seed: 6
 mu: {mu}
-year_per_generation: 1
-plot_title: {wildcards.prefix}.{wildcards.rec_quant}.{wildcards.chr}
+year_per_generation: {generation}
+plot_title: {wildcards.prefix}.{wildcards.rec}.{wildcards.chr}
 xrange: 0.1,10000
 yrange: 0,0
 xspacing: 2
@@ -97,18 +101,18 @@ fontsize: 12" > {output.blueprint}
     #############
 
 
-rule flip_bed_rec:
+rule flip_bed:
     """
         Reverse bed file to show positions that will be excluded for SMC++ input
     """
     input:
-        bed = "results/bed/rec/ml/{prefix}.{rec_quant}.{chr}.callable.bed",
+        bed = "results/bed/rec/{prefix}.{rec}.{chr}.callable.bed",
         raw_bed = "results/bed/raw/{prefix}.raw.{chr}.callable.bed",
-        script = "/groups/plantlp/vcf_processing/scripts/snakemake_prepareNe/workflow/scripts/reverse_bed.py"
+        script = workflow.source_path("../scripts/reverse_bed.py")
     output:
-        mask = temp("results/bed/rec/{prefix}.{rec_quant}.callable.flipped.{chr}.bed"),
-        mask_gz = "results/bed/rec/{prefix}.{rec_quant}.callable.flipped.{chr}.bed.gz",
-        mask_idx = "results/bed/rec/{prefix}.{rec_quant}.callable.flipped.{chr}.bed.gz.tbi"
+        mask = temp("results/bed/rec/{prefix}.{rec}.callable.flipped.{chr}.bed"),
+        mask_gz = "results/bed/rec/{prefix}.{rec}.callable.flipped.{chr}.bed.gz",
+        mask_idx = "results/bed/rec/{prefix}.{rec}.callable.flipped.{chr}.bed.gz.tbi"
     conda:
         "../envs/vcf_processing.yml"
     shell:
@@ -120,20 +124,20 @@ rule flip_bed_rec:
         tabix -p bed {output.mask_gz}
         """
 
-rule prepare_smcpp_rec:
+rule prepare_smcpp:
     """
         Prepare .smc file per chr with the callability.bed as mask
     """
     input:
-        vcf = "results/vcf/rec/{prefix}.{rec_quant}.320kSNP.{chr}.vcf.gz",
-        vcf_idx = "results/vcf/rec/{prefix}.{rec_quant}.320kSNP.{chr}.vcf.gz.tbi",
+        vcf = "results/vcf/rec/{prefix}.{rec}.rdmSNP.{chr}.vcf.gz",
+        vcf_idx = "results/vcf/rec/{prefix}.{rec}.rdmSNP.{chr}.vcf.gz.tbi",
         pop_path = "results/{prefix}.pop",
-        fai = "results/stats/rec/ml/{prefix}.{rec_quant}.320kSNP.{chr}.fai",
-        mask = "results/bed/rec/{prefix}.{rec_quant}.callable.flipped.{chr}.bed.gz",
-        mask_idx = "results/bed/rec/{prefix}.{rec_quant}.callable.flipped.{chr}.bed.gz.tbi",
+        fai = "results/stats/rec/{prefix}.{rec}.rdmSNP.{chr}.fai",
+        mask = "results/bed/rec/{prefix}.{rec}.callable.flipped.{chr}.bed.gz",
+        mask_idx = "results/bed/rec/{prefix}.{rec}.callable.flipped.{chr}.bed.gz.tbi",
         smcpp = config["smcpp"]
     output:
-        smcpp_input = "results/ne_inference/smcpp/rec/{rec_quant}/{prefix}.{rec_quant}.{chr}.smc.gz"
+        smcpp_input = "results/ne_inference/smcpp/rec/{rec}/{prefix}.{rec}.{chr}.smc.gz"
     conda:
         "../envs/vcf_processing.yml"
     shell:

@@ -3,7 +3,7 @@ from pandas import read_csv
 import sys
 
 def merge_beds(bed_map:str, bed_call:str, output_bed:str):
-    """Determine the correct chr length based on kept bed regions
+    """ merge bed based on recombination map and bed based on callability
 
     Args:
         input_bed (str): _description_

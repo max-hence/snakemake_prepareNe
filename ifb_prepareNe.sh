@@ -1,14 +1,15 @@
 #! /bin/bash
 #SBATCH --job-name=PREPARENE
-#SBATCH -o /groups/plantlp/vcf_processing/genouest_log/prepareNe/%x.%j.out
-#SBATCH -e /groups/plantlp/vcf_processing/genouest_log/prepareNe/%x.%j.err
-#SBATCH -p ecobio,genouest
-#SBATCH --time=1:00
-#SBATCH --mem=1G
+#SBATCH -o /shared/projects/plant_lewontin_paradox/vcf_processing/genouest_log/prepare_Ne/%x.%j.out
+#SBATCH -e /shared/projects/plant_lewontin_paradox/vcf_processing/genouest_log/prepare_Ne/%x.%j.err
+#SBATCH -p long
+#SBATCH --time=2-00
+#SBATCH --mem=10G
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=2
+#SBATCH --cpus-per-task=4
 
-. /groups/plantlp/paths.sh
+. /shared/projects/plant_lewontin_paradox/paths.sh
+
 echo "Command :
 $snp_scripts/go_snparcher.sh $@" >&2
 
@@ -36,8 +37,7 @@ while getopts "i:o:ur" opt; do
   esac
 done
 
-. /local/env/envconda.sh
-conda activate snparcher
+module load snakemake/8.9.0
 
 if [ $unlock == true ]; then
   snakemake -s $vcf_scripts/snakemake_prepareNe/workflow/Snakefile \

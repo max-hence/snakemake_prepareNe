@@ -11,17 +11,17 @@ rule correct_genotype:
     input:
         vcf = "results/vcf/snps/{prefix}.SNPS.{chr}.vcf",
         splitted_bed = "results/bed/raw/{prefix}.raw.{chr}.callable.bed",
-        script = "/groups/plantlp/vcf_processing/scripts/snakemake_prepareNe/workflow/scripts/correct_genotype.py"
+        script = workflow.source_path("../scripts/correct_genotype.py")
     output:
-        corrected_vcf = temp("results/vcf/snps_na/{prefix}.SNPS.NA.{chr}.vcf"),
+        corrected_vcf = "results/vcf/snps_na/{prefix}.SNPS.NA.{chr}.vcf",
         corrected_vcf_gz = "results/vcf/snps_na/{prefix}.SNPS.NA.{chr}.vcf.gz",
-        corrected_vcf_idx = "results/vcf/snps_na/{prefix}.SNPS.NA.{chr}.vcf.gz.tbi",
+        corrected_vcf_idx = "results/vcf/snps_na/{prefix}.SNPS.NA.{chr}.vcf.gz.tbi"
     conda:
         "../envs/vcf_processing.yml"
     shell:
         """
-            python3 {input.script} -i {input.vcf} -b {input.splitted_bed} -o {output.corrected_vcf}
-            bgzip < {output.corrected_vcf} > {output.corrected_vcf_gz} && tabix -p vcf {output.corrected_vcf_gz}
+        python3 {input.script} -i {input.vcf} -b {input.splitted_bed} -o {output.corrected_vcf}
+        bgzip < {output.corrected_vcf} > {output.corrected_vcf_gz} && tabix -p vcf {output.corrected_vcf_gz}
         """
 
 
@@ -33,33 +33,30 @@ rule easy_SFS_na:
             vcf_na = "results/vcf/snps_na/{prefix}.SNPS.NA.{chr}.vcf",
             pop_path = "results/{prefix}.pop",
             easySFS = config["easySFS_path"],
-            get_sfs_param = "/groups/plantlp/vcf_processing/scripts/snakemake_prepareNe/workflow/scripts/get_sfs_param.py"
-
         output:
             preview = "results/sfs/snps_na/{prefix}.SNPS.NA.preview.{chr}.txt"
         conda:
             "../envs/easySFS.yml"
         shell:
             """
-                python3 {input.easySFS} -i {input.vcf_na} -p {input.pop_path} \
+                {input.easySFS} -i {input.vcf_na} -p {input.pop_path} \
                 --preview -v -a > {output.preview}
             """
 
 rule get_best_params_na:
     """
-        merge all results from easySFS run by chr
+        merge all results from easySFS run by chr and measure best snp/ratio with ML
     """
     input:
         previews = get_previews("results/sfs/snps_na/{prefix}.SNPS.NA.preview.{chr}.txt"),
-        get_sfs_param = "/groups/plantlp/vcf_processing/scripts/snakemake_prepareNe/workflow/scripts/get_sfs_param.py"
+        script = workflow.source_path("../scripts/get_sfs_param.py")
     output:
         best_sample = "results/sfs/snps_na/{prefix}.SNPS.NA.best_sample.txt"
     conda:
         "../envs/vcf_processing.yml"
     shell:
         """ 
-            previews=$(echo {input.previews} | tr ' ' ',')
-            python3 {input.get_sfs_param} -i $previews -m "ml" -o {output.best_sample}
+            python3 {input.script} -i {input.previews} -m "ml" -o {output.best_sample}
         """
 
 
@@ -74,7 +71,7 @@ rule trim_bed_na:
             corrected_vcf_idx = "results/vcf/snps_na/{prefix}.SNPS.NA.{chr}.vcf.gz.tbi",
             rescaled_fai = "results/stats/snps/full/{prefix}.SNPS.full.{chr}.fai",
             splitted_bed = "results/bed/raw/{prefix}.raw.{chr}.callable.bed",
-            script = "/groups/plantlp/vcf_processing/scripts/snakemake_prepareNe/workflow/scripts/rescale_genlen.py"
+            script = workflow.source_path("../scripts/rescale_genlen.py")
         output:
             trimmed_bed = "results/bed/snps_na/{prefix}.SNPS.NA.{chr}.callable.bed",
             resized_fai = "results/stats/snps_na/{prefix}.SNPS.NA.{chr}.fai"
@@ -85,7 +82,7 @@ rule trim_bed_na:
                 sampling_size=$(( $(tail -1 {input.best_sample} | cut -f1 ) / 2 ))
                 bed_length=$(tail -1 {input.splitted_bed} | cut -f3)
                 awk -v n=$sampling_size '$4 >= n' {input.splitted_bed} > {output.trimmed_bed}
-                
+
                 python3 {input.script} -i {output.trimmed_bed} -f {input.rescaled_fai} \
-                -o {output.resized_fai}
+                -o {output.resized_fai} --method "bed"
             """

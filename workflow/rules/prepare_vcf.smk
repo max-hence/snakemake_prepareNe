@@ -25,8 +25,8 @@ rule split_vcf:
     input:
         vcf = config["vcf_path"]
     output:
-        splitted_vcf = temp("results/vcf/raw/{prefix}.raw.{chr}.vcf.gz"),
-        splitted_vcf_idx = temp("results/vcf/raw/{prefix}.raw.{chr}.vcf.gz.tbi"),
+        splitted_vcf = "results/vcf/raw/{prefix}.raw.{chr}.vcf.gz",
+        splitted_vcf_idx = "results/vcf/raw/{prefix}.raw.{chr}.vcf.gz.tbi",
         stats = "results/stats/raw/{prefix}.raw.{chr}.stats"
     conda:
         "../envs/vcf_processing.yml"
@@ -59,9 +59,10 @@ rule filter_snps:
         splitted_vcf = "results/vcf/raw/{prefix}.raw.{chr}.vcf.gz",
         splitted_vcf_idx = "results/vcf/raw/{prefix}.raw.{chr}.vcf.gz.tbi"
     output:
-        vcf_snps = temp("results/vcf/snps/{prefix}.SNPS.{chr}.vcf"),
+        vcf_snps = "results/vcf/snps/{prefix}.SNPS.{chr}.vcf",
         vcf_snps_gz = "results/vcf/snps/{prefix}.SNPS.{chr}.vcf.gz",
-        vcf_snps_idx = "results/vcf/snps/{prefix}.SNPS.{chr}.vcf.gz.tbi"
+        vcf_snps_idx = "results/vcf/snps/{prefix}.SNPS.{chr}.vcf.gz.tbi",
+        snps_stats = "results/stats/snps/full/{prefix}.SNPS.{chr}.stats"
     conda:
         "../envs/vcf_processing.yml"
     shell:
@@ -69,29 +70,28 @@ rule filter_snps:
         bcftools view -Oz -m2 -M2 -v snps -o {output.vcf_snps} {input.splitted_vcf}
         bgzip -c {output.vcf_snps} > {output.vcf_snps_gz}
         tabix -p vcf {output.vcf_snps_gz}
+        bcftools index -s {output.vcf_snps_gz} > {output.snps_stats}
         """
 
 
-rule resize_vcf:
+rule rescale_chr:
     """
     Rescale chr length based on lost variants when filtering for bi allelic snps
-    Writes the updated length in vcf header
     """
     input:
         fai = config["fai_path"],
         raw_stats = "results/stats/raw/{prefix}.raw.{chr}.stats",
-        vcf_snps = "results/vcf/snps/{prefix}.SNPS.{chr}.vcf.gz",
-        vcf_snps_idx = "results/vcf/snps/{prefix}.SNPS.{chr}.vcf.gz.tbi"
+        snps_stats = "results/stats/snps/full/{prefix}.SNPS.{chr}.stats",
+        script = workflow.source_path("../scripts/rescale_genlen.py")
     output:
-        rescaled_fai = "results/stats/snps/full/{prefix}.SNPS.full.{chr}.fai",
+        rescaled_fai = "results/stats/snps/full/{prefix}.SNPS.full.{chr}.fai"
     conda:
         "../envs/vcf_processing.yml"
     shell:
-        """ 
-        snps=$(bcftools index -s {input.vcf_snps} | cut -f3)
-        new_length=$(($(cut -f2 {input.raw_stats}) - $(cut -f3 {input.raw_stats}) + snps))
-        awk '$1 == "{wildcards.chr}"' {input.fai} | awk -v val=$new_length 'BEGIN {{OFS="\t"}} {{ $2=val; print }}' > {output.rescaled_fai}
         """
+            python3 {input.script} -i {input.snps_stats} -r {input.raw_stats} -f {input.fai} -o {output.rescaled_fai} --method snp
+        """
+
 
         ######################
         ### VCF resampling ###
@@ -102,7 +102,7 @@ rule resize_vcf:
     ### Max snps
 rule sfs_projection:
     """
-        Run easySFS to run SFS projection to find the best sample/snps ratio
+        Run easySFS to run SFS projection for each sample size (2:2n)
     """
         input:
             vcf_snps = "results/vcf/snps/{prefix}.SNPS.{chr}.vcf",
@@ -118,33 +118,6 @@ rule sfs_projection:
                 --preview -v -a > {output.preview}
             """
 
-
-    ### 10 indiv
-rule trim_bed_small:
-    """
-        Remove regions in bed where less than 10 indiv have been well called
-    """
-    input:
-        vcf = "results/vcf/snps/{prefix}.SNPS.{chr}.vcf.gz",
-        vcf_idx = "results/vcf/snps/{prefix}.SNPS.{chr}.vcf.gz.tbi",
-        rescaled_fai = "results/stats/snps/full/{prefix}.SNPS.full.{chr}.fai",
-        raw_bed = "results/bed/raw/{prefix}.raw.{chr}.callable.bed",
-        script = "/groups/plantlp/vcf_processing/scripts/snakemake_prepareNe/workflow/scripts/rescale_genlen.py"
-    output:
-        trimmed_bed = "results/bed/snps/small/{prefix}.SNPS.small.{chr}.callable.bed",
-        resized_fai = "results/stats/snps/small/{prefix}.SNPS.small.{chr}.fai"
-    conda:
-        "../envs/vcf_processing.yml"
-    shell:
-        """
-        sampling_size=5
-        bed_length=$(tail -1 {input.raw_bed} | cut -f3)
-        awk -v n=$sampling_size '$4 >= n' {input.raw_bed} > {output.trimmed_bed}
-        
-        python3 {input.script} -i {output.trimmed_bed} -f {input.rescaled_fai} \
-        -o {output.resized_fai}
-        """
-
 rule get_best_params:
     """
         merge all results from easySFS run by chr and find best params based on two methods
@@ -153,35 +126,28 @@ rule get_best_params:
     """
     input:
         previews = get_previews("results/sfs/snps/{prefix}.SNPS.preview.{chr}.txt"),
-        get_sfs_param = "/groups/plantlp/vcf_processing/scripts/snakemake_prepareNe/workflow/scripts/get_sfs_param.py"
-
+        script = workflow.source_path("../scripts/get_sfs_param.py")
     output:
-        best_sample_max = "results/sfs/snps/{prefix}.SNPS.best_sample_max.txt",
-        best_sample_ml = "results/sfs/snps/{prefix}.SNPS.best_sample_ml.txt",
+        best_sample_size = "results/sfs/snps/{prefix}.SNPS.best_sample_{sfs_params_method}.txt"
     conda:
         "../envs/vcf_processing.yml"
+    params:
+        method = lambda wildcards: wildcards.sfs_params_method
     shell:
         """
-        previews=$(echo {input.previews} | tr ' ' ',')
-        python3 {input.get_sfs_param} -i $previews -m "max" -o {output.best_sample_max}
-        python3 {input.get_sfs_param} -i $previews -m "ml" -o {output.best_sample_ml}
+            python3 {input.script} -i {input.previews} --method {params.method} -o {output.best_sample_size}
         """
-
-rule trim_bed_max:
+    
+    # Max SNPs
+rule trim_bed_max_ml:
     """
         Remove regions in bed where less than <best_sample> indiv have been well called
-        Resize chr length based on trimmed bed
     """
     input:
-        best_sample = "results/sfs/snps/{prefix}.SNPS.best_sample_max.txt",
-        vcf = "results/vcf/snps/{prefix}.SNPS.{chr}.vcf.gz",
-        vcf_idx = "results/vcf/snps/{prefix}.SNPS.{chr}.vcf.gz.tbi",
-        rescaled_fai = "results/stats/snps/full/{prefix}.SNPS.full.{chr}.fai",
-        raw_bed = "results/bed/raw/{prefix}.raw.{chr}.callable.bed",
-        script = "/groups/plantlp/vcf_processing/scripts/snakemake_prepareNe/workflow/scripts/rescale_genlen.py"
+        best_sample = "results/sfs/snps/{prefix}.SNPS.best_sample_{sfs_params_method}.txt",
+        raw_bed = "results/bed/raw/{prefix}.raw.{chr}.callable.bed"
     output:
-        trimmed_bed = "results/bed/snps/max/{prefix}.SNPS.max.{chr}.callable.bed",
-        resized_fai = "results/stats/snps/max/{prefix}.SNPS.max.{chr}.fai"
+        trimmed_bed = "results/bed/snps/{sfs_params_method}/{prefix}.SNPS.{sfs_params_method}.{chr}.callable.bed"
     conda:
         "../envs/vcf_processing.yml"
     shell:
@@ -189,26 +155,36 @@ rule trim_bed_max:
         sampling_size=$(( $(tail -1 {input.best_sample} | cut -f1 ) / 2 ))
         bed_length=$(tail -1 {input.raw_bed} | cut -f3)
         awk -v n=$sampling_size '$4 >= n' {input.raw_bed} > {output.trimmed_bed}
-        
-        python3 {input.script} -i {output.trimmed_bed} -f {input.rescaled_fai} \
-        -o {output.resized_fai}
         """
 
-    ### all indiv
+    ### 10 indiv
+rule trim_bed_small:
+    """
+        Remove regions in bed where less than 10 indiv have been well called
+    """
+    input:
+        raw_bed = "results/bed/raw/{prefix}.raw.{chr}.callable.bed"
+    output:
+        trimmed_bed = "results/bed/snps/small/{prefix}.SNPS.small.{chr}.callable.bed",
+    conda:
+        "../envs/vcf_processing.yml"
+    shell:
+        """
+        sampling_size=5
+        bed_length=$(tail -1 {input.raw_bed} | cut -f3)
+        awk -v n=$sampling_size '$4 >= n' {input.raw_bed} > {output.trimmed_bed}
+        """
+
+    ### All indiv
 rule trim_bed_strict:
     """
         Remove regions in bed where less than <all_samples> indivs have been well called
     """
     input:
-        vcf = "results/vcf/snps/{prefix}.SNPS.{chr}.vcf.gz",
-        vcf_idx = "results/vcf/snps/{prefix}.SNPS.{chr}.vcf.gz.tbi",
-        rescaled_fai = "results/stats/snps/full/{prefix}.SNPS.full.{chr}.fai",
         raw_bed = "results/bed/raw/{prefix}.raw.{chr}.callable.bed",
-        pop_path = "results/{prefix}.pop",
-        script = "/groups/plantlp/vcf_processing/scripts/snakemake_prepareNe/workflow/scripts/rescale_genlen.py"
+        pop_path = "results/{prefix}.pop"
     output:
-        trimmed_bed = "results/bed/snps/strict/{prefix}.SNPS.strict.{chr}.callable.bed",
-        resized_fai = "results/stats/snps/strict/{prefix}.SNPS.strict.{chr}.fai"
+        trimmed_bed = "results/bed/snps/strict/{prefix}.SNPS.strict.{chr}.callable.bed"
     conda:
         "../envs/vcf_processing.yml"
     shell:
@@ -216,34 +192,21 @@ rule trim_bed_strict:
         sampling_size=$(wc -l < {input.pop_path})
         bed_length=$(tail -1 {input.raw_bed} | cut -f3)
         awk -v n=$sampling_size '$4 >= n' {input.raw_bed} > {output.trimmed_bed}
-
-        python3 {input.script} -i {output.trimmed_bed} -f {input.rescaled_fai} \
-        -o {output.resized_fai}
         """
 
-rule trim_bed_ml:
+rule resize_chr:
     """
-        Remove regions in bed where less than <best_sample> indiv have been well called
-        best sample is measure as the number of indiv that maximizes a log-likelihood function (that gives the sfs with the highest signal)
-        Resize chr length based on trimmed bed
+    Change chr size based on new bed
     """
     input:
-        best_sample = "results/sfs/snps/{prefix}.SNPS.best_sample_ml.txt",
-        vcf = "results/vcf/snps/{prefix}.SNPS.{chr}.vcf.gz",
-        vcf_idx = "results/vcf/snps/{prefix}.SNPS.{chr}.vcf.gz.tbi",
-        rescaled_fai = "results/stats/snps/full/{prefix}.SNPS.full.{chr}.fai",
-        raw_bed = "results/bed/raw/{prefix}.raw.{chr}.callable.bed",
-        script = "/groups/plantlp/vcf_processing/scripts/snakemake_prepareNe/workflow/scripts/rescale_genlen.py"
+        trimmed_bed = "results/bed/snps/{subsample}/{prefix}.SNPS.{subsample}.{chr}.callable.bed",
+        fai = "results/stats/snps/full/{prefix}.SNPS.full.{chr}.fai",
+        script = workflow.source_path("../scripts/rescale_genlen.py")
     output:
-        trimmed_bed = "results/bed/snps/ml/{prefix}.SNPS.ml.{chr}.callable.bed",
-        resized_fai = "results/stats/snps/ml/{prefix}.SNPS.ml.{chr}.fai"
+        rescaled_fai = "results/stats/snps/{subsample}/{prefix}.SNPS.{subsample}.{chr}.fai"
     conda:
         "../envs/vcf_processing.yml"
     shell:
         """
-        sampling_size=$(( $(tail -1 {input.best_sample} | cut -f1 ) / 2 ))
-        bed_length=$(tail -1 {input.raw_bed} | cut -f3)
-        awk -v n=$sampling_size '$4 >= n' {input.raw_bed} > {output.trimmed_bed}
-        
-        python3 {input.script} -i {output.trimmed_bed} -f {input.rescaled_fai} -o {output.resized_fai}
+        python3 {input.script} -i {input.trimmed_bed} -f {input.fai} -o {output.rescaled_fai} --method bed
         """

@@ -1,14 +1,15 @@
 configfile: "config/config.yml"
 include: "rules/common.smk"
-include: "rules/split_by_geneD.smk"
+include: "rules/recmap.smk"
+include: "rules/prepare_Neinputs.smk"
 
 wildcard_constraints:
     chr = "|".join(get_chr_list(config["fai_path"])),
     prefix = config["final_prefix"],
-    density_cat = "|".join(["lowD","highD"])
+    rec_quant = "|".join(["rec1","rec2","rec3"])
 
 chromosomes: list = get_chr_list(config["fai_path"])
 
 rule all:
     input:
-        expand("results/geneD/{prefix}.{density_cat}.{chr}.bed", prefix=config["final_prefix"], density_cat=["lowD","highD"], chr=chromosomes)
+        get_output()

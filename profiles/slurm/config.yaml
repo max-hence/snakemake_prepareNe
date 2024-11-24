@@ -7,88 +7,50 @@ retries: 0 # Retry jobs N times.
 # These resources will be applied to all rules. Can be overriden on a per-rule basis below.
 default-resources:
   mem_mb: attempt * 5000
-  slurm_partition: "ecobio,genouest"
-  slurm_account: "mbrault"
+  slurm_partition: "fast"
+  slurm_account: "plant_lewontin_paradox"
   runtime: 240 # (In minutes)
-  cpus_per_task: 8
+  cpus_per_task: 2
 
 set-resources:
-  easy_SFS_snps:
-    mem_mb: attempt * 20000
-    slurm_partition: "ecobio,genouest"
-    slurm_account: "mbrault"
-    runtime: 720 # (In minutes)
-    cpus_per_task: 16
-
-  easy_SFS_na:
-    mem_mb: attempt * 20000
-    slurm_partition: "ecobio,genouest"
-    slurm_account: "mbrault"
-    runtime: 720 # (In minutes)
-    cpus_per_task: 16
-
   sfs_projection:
-    mem_mb: attempt * 20000
-    slurm_partition: "ecobio,genouest"
-    slurm_account: "mbrault"
+    mem_mb: attempt * 50000
+    slurm_partition: "fast"
+    slurm_account: "plant_lewontin_paradox"
     runtime: 720 # (In minutes)
     cpus_per_task: 16
 
-  sfs_projection_rdm:
-    mem_mb: attempt * 20000
-    slurm_partition: "ecobio,genouest"
-    slurm_account: "mbrault"
+  sfs_projection_na:
+    mem_mb: attempt * 50000
+    slurm_partition: "fast"
+    slurm_account: "plant_lewontin_paradox"
     runtime: 720 # (In minutes)
     cpus_per_task: 16
 
-  sfs_projection_rec:
+  sfs_max_ml:
     mem_mb: attempt * 20000
-    slurm_partition: "ecobio,genouest"
-    slurm_account: "mbrault"
-    runtime: 720 # (In minutes)
-    cpus_per_task: 16
-
-  sfs_rdm:
-    mem_mb: attempt * 20000
-    slurm_partition: "ecobio,genouest"
-    slurm_account: "mbrault"
+    slurm_partition: "fast"
+    slurm_account: "plant_lewontin_paradox"
     runtime: 720 # (In minutes)
     cpus_per_task: 16
 
   sfs_small:
     mem_mb: attempt * 20000
-    slurm_partition: "ecobio,genouest"
-    slurm_account: "mbrault"
-    runtime: 720 # (In minutes)
-    cpus_per_task: 16
-  sfs_rec:
-    mem_mb: attempt * 20000
-    slurm_partition: "ecobio,genouest"
-    slurm_account: "mbrault"
-    runtime: 720 # (In minutes)
-    cpus_per_task: 16
-  sfs_max:
-    mem_mb: attempt * 20000
-    slurm_partition: "ecobio,genouest"
-    slurm_account: "mbrault"
-    runtime: 720 # (In minutes)
-    cpus_per_task: 16
-  sfs_ml:
-    mem_mb: attempt * 20000
-    slurm_partition: "ecobio,genouest"
-    slurm_account: "mbrault"
+    slurm_partition: "fast"
+    slurm_account: "plant_lewontin_paradox"
     runtime: 720 # (In minutes)
     cpus_per_task: 16
 
   sfs_strict:
     mem_mb: attempt * 20000
-    slurm_partition: "ecobio,genouest"
-    slurm_account: "mbrault"
+    slurm_partition: "fast"
+    slurm_account: "plant_lewontin_paradox"
     runtime: 720 # (In minutes)
     cpus_per_task: 16
+  
   sfs_na:
     mem_mb: attempt * 20000
-    slurm_partition: "ecobio,genouest"
-    slurm_account: "mbrault"
+    slurm_partition: "fast"
+    slurm_account: "plant_lewontin_paradox"
     runtime: 720 # (In minutes)
     cpus_per_task: 16

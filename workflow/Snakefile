@@ -1,3 +1,5 @@
+from os import path
+
 configfile: "config/config.yml"
 
 # Classic filter
@@ -7,22 +9,29 @@ include: "rules/prepare_strway_plot.smk"
 include: "rules/prepare_smcpp.smk"
 include: "rules/prepare_vcf.smk"
 
-# Recombination filter
-include: "rules/recmap.smk"
-include: "rules/prepare_rec_Neinputs.smk"
+if config["recombination"]:
+    module recombination:
+        snakefile:
+            "modules/recombination/Snakefile"
+        config:
+            config
+    use rule * from recombination as rec_*
 
-module density:
-    snakefile:
-        "modules/gene_density/Snakefile"
-    config:
-        config
-use rule * from density as density_*
+if config["density"]:
+    module density:
+        snakefile:
+            "modules/gene_density/Snakefile"
+        config:
+            config
+    use rule * from density as density_*
 
 # Force chr name matching in paths
 wildcard_constraints:
     chr = "|".join(get_chr_list(config["fai_path"])),
+    sfs_params_method = "|".join(["ml", "max"]),
     prefix = config["final_prefix"],
-    rec_quant = "|".join(["rec1","rec2","rec3"]) # 1 = < 33%, 2 = >33% et <66%, 3= > 66%
+    rec_quant = "|".join(["rec1","rec2","rec3"]), # 1 = < 33%, 2 = >33% et <66%, 3= > 66%
+    sampling_method = "|".join(["small","max","ml","strict"])
 
 
 rule all:

@@ -1,29 +1,7 @@
-- change way of choosing best sample value (use Sylvain's likelihood method)
-
-- Plot les resultats de Stairway Plot par traitment (OK)
-
-- Lancer SMC++ (OK)
-
-- Carte de recombinaison (OK)
-
-- Le pipeline marche mais vérifier tous les outputs pour savoir s'ils donnent bien ce que je veux (OK)
-
-- Vérifier comment exactement fonctionne easySFS avec un jeu test
-
-- Tester SMC++ avec le bootstrap !
-
-- Ok ça à l'air de marcher pour le jeu test, tester sur C. grandiflora (OK)
-
-- Construire inputs de SP et SMC++ (OK)
-
-- Ajouter vérif que la rec map ait bien les même chr_id que le fai
-
 - Changer le format du fai, faire juste un tableau avec les chr et la taille puis faire une fonction qui actualise la taille
-    Sans faire un fichier pour chaque chr c'est chiant
+    Sans faire un fichier pour chaque chr c'est chiant. En fait c'est pas possible si les jobs sont lancés en parallele. Du coup plein de fichier 
+    --> Merge à la fin !
 
-- Faire un sous echantillonnage de la même taille mais rdm dans le chr
-    Faire vite fait le module snakemake ce sera plus rapide et comme ça je lance ça cette nuit
+- Module à part pour la recombinaison, comme gene density
 
-- Plot les résultats !!
-
-- Ameliorer la creation des input de SP et SMC++ y a 4x la m^me function la
+- Mettre les .vcf et autre en temp()
