@@ -28,12 +28,10 @@ rule sfs_small:
     shell:
         """
             sampling_size=10
-            length=$(cut -f2 {input.fai})
             python3 {input.easySFS} -i {input.vcf} -p {input.pop_path} \
             --dtype 'int' \
             --proj $sampling_size \
             --ploidy 2 \
-            --total-length $length \
             -v -a -f -o {output.sfs_dir}
 
             n_seq=$(sed -n '2 p' {output.sfs_dir}/fastsimcoal2/*MSFS.obs | \
@@ -61,12 +59,10 @@ rule sfs_strict:
     shell:
         """
             sampling_size=$(( $(wc -l < {input.pop_path}) * 2 ))
-            length=$(cut -f2 {input.fai})
             python3 {input.easySFS} -i {input.vcf} -p {input.pop_path} \
             --dtype 'int' \
             --proj $sampling_size \
             --ploidy 2 \
-            --total-length $length \
             -v -a -f -o {output.sfs_dir}
 
             n_seq=$(sed -n '2 p' {output.sfs_dir}/fastsimcoal2/*MSFS.obs | \
@@ -95,12 +91,10 @@ rule sfs_max_ml:
     shell:
         """
             sampling_size=$(( $(tail -1 {input.best_sample} | cut -f1 )))
-            length=$(cut -f2 {input.fai})
             python3 {input.easySFS} -i {input.vcf} -p {input.pop_path} \
             --dtype 'int' \
             --proj $sampling_size \
             --ploidy 2 \
-            --total-length $length \
             -v -a -f -o {output.sfs_dir}
 
             n_seq=$(sed -n '2 p' {output.sfs_dir}/fastsimcoal2/*MSFS.obs | \
@@ -170,12 +164,10 @@ rule sfs_na:
     shell:
         """
             sampling_size=$(( $(tail -1 {input.best_sample} | cut -f1 )))
-            length=$(cut -f2 {input.fai})
             python3 {input.easySFS} -i {input.vcf} -p {input.pop_path} \
             --dtype 'int' \
             --proj $sampling_size \
             --ploidy 2 \
-            --total-length $length \
             -v -a -f -o {output.sfs_dir}
 
             n_seq=$(sed -n '2 p' {output.sfs_dir}/fastsimcoal2/*MSFS.obs | \

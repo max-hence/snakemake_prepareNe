@@ -45,7 +45,7 @@ rule resize_chr:
             python3 {input.script} -i {input.bed} -f {input.fai} -o {output.fai} --method "bed"
             """
 
-rule trim_vcf:
+rule split_vcf:
     "Remove regions outside rec threshold to rerun easySFS on that subtable"
 
     input:
@@ -53,16 +53,19 @@ rule trim_vcf:
         vcf_idx = "results/vcf/snps_na/{prefix}.SNPS.NA.{chr}.vcf.gz.tbi",
         bed = "results/bed/rec/{prefix}.{rec}.{chr}.bed"
     output:
-        trimmed_vcf = "results/vcf/rec/{prefix}.{rec}.{chr}.vcf",
-        trimmed_vcf_gz = "results/vcf/rec/{prefix}.{rec}.{chr}.vcf.gz",
-        trimmed_vcf_idx = "results/vcf/rec/{prefix}.{rec}.{chr}.vcf.gz.tbi"
+        splitted_vcf = "results/vcf/rec/{prefix}.{rec}.{chr}.vcf",
+        splitted_vcf_gz = "results/vcf/rec/{prefix}.{rec}.{chr}.vcf.gz",
+        splitted_vcf_idx = "results/vcf/rec/{prefix}.{rec}.{chr}.vcf.gz.tbi",
+        stats = "results/stats/rec/{prefix}.{rec}.{chr}.stats"
     conda:
         "../envs/vcf_processing.yml"
     shell:
         """
-        bcftools view -R {input.bed} {input.vcf} -o {output.trimmed_vcf}
-        bgzip -c {output.trimmed_vcf} > {output.trimmed_vcf_gz}
-        tabix -p vcf {output.trimmed_vcf_gz}
+        bcftools view -R {input.bed} {input.vcf} -o {output.splitted_vcf}
+        bgzip -c {output.splitted_vcf} > {output.splitted_vcf_gz}
+        tabix -p vcf {output.splitted_vcf_gz}
+
+        bcftools index -s {output.splitted_vcf} > {output.stats}
         """
 
 rule rdm_sample_vcf:
@@ -71,16 +74,19 @@ rule rdm_sample_vcf:
         vcf = "results/vcf/rec/{prefix}.{rec}.{chr}.vcf.gz",
         vcf_idx = "results/vcf/rec/{prefix}.{rec}.{chr}.vcf.gz.tbi",
         fai = "results/stats/rec/{prefix}.{rec}.{chr}.fai",
+        stats = temp("results/stats/rec/{prefix}.{rec}.{chr}.stats"),
+        script = workflow.source_path("../scripts/rescale_genlen.py")
     output:
         unsorted_vcf = temp("results/vcf/rec/{prefix}.{rec}.rdmSNP.unsorted.{chr}.vcf.gz"),
         rdm_vcf = temp("results/vcf/rec/{prefix}.{rec}.rdmSNP.{chr}.vcf"),
         rdm_vcf_gz = "results/vcf/rec/{prefix}.{rec}.rdmSNP.{chr}.vcf.gz",
         rdm_vcf_idx = "results/vcf/rec/{prefix}.{rec}.rdmSNP.{chr}.vcf.gz.tbi",
+        rdm_stats = temp("results/stats/rec/{prefix}.{rec}.rdmSNP.{chr}.stats")
         rdm_fai = "results/stats/rec/{prefix}.{rec}.rdmSNP.{chr}.fai",
     conda:
         "../envs/vcf_processing.yml"
     params: 
-      nsnps=50
+      nsnps=100000
     shell:
         """
         bcftools view --header-only {input.vcf} > {output.unsorted_vcf}
@@ -91,11 +97,14 @@ rule rdm_sample_vcf:
         tabix -p vcf {output.rdm_vcf_gz}
         bgzip -cd {output.rdm_vcf_gz} > {output.rdm_vcf}
 
-        # resize (total length - lost snps)
-        nsnps=$(bcftools index -s {input.vcf} | cut -f3)
-        lost_snps=$((nsnps - {params.nsnps}))
-        awk '{{ $2 = $2 - lost_snps; OFS="\\t"; print }}' {input.fai} > {output.rdm_fai}
+        # Chromosome rescaling
+        bcftools index -s {output.rdm_vcf_gz} > {output.rdm_stats}
+        python3 {input.script} -i {input.snps_stats} -r {output.rdm_stats} -f {input.fai} -o {output.rdm_fai} --method snp
         """
+
+    ###################
+    ### Subsampling ###
+    ###################
 
 rule sfs_projection:
     "Run easySFS on the sub vcf"

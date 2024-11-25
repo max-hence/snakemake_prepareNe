@@ -25,7 +25,7 @@ rule correct_genotype:
         """
 
 
-rule easy_SFS_na:
+rule sfs_projection_na:
     """
         Run easySFS to run SFS projection to find the best sample/snps ratio
     """

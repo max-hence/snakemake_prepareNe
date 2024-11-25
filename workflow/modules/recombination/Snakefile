@@ -1,6 +1,6 @@
 configfile: "config/config.yml"
 include: "rules/common.smk"
-include: "rules/recmap.smk"
+include: "rules/split_by_rec.smk"
 include: "rules/prepare_Neinputs.smk"
 
 wildcard_constraints:

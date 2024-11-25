@@ -12,11 +12,12 @@ def get_output():
     if final_prefix == "":
             raise (WorkflowError("'final_prefix' is not set in config."))
 
-    out.extend(expand("results/bed/rec/{prefix}.{rec}.{chr}.callable.bed", prefix=final_prefix, rec=rec_quant, chr=chromosomes))
-    out.extend(expand("results/stats/rec/{prefix}.{rec}.rdmSNP.{chr}.fai", prefix=final_prefix, rec=rec_quant, chr=chromosomes))
-    out.extend(expand("results/sfs/rec/{rec}/{prefix}.{rec}.{chr}.png", prefix=final_prefix, rec=rec_quant, chr=chromosomes))
-    out.extend(expand("results/ne_inference/smcpp/rec/{rec}/{prefix}.{rec}.{chr}.smc.gz", prefix=final_prefix, rec=rec_quant, chr=chromosomes))
-    out.extend(expand("results/ne_inference/strway_plt/rec/{rec}/{prefix}.{rec}.{chr}.blueprint", prefix=final_prefix, rec=rec_quant, chr=chromosomes))
+    out.extend(expand("results/vcf/rec/{prefix}.{rec}.{chr}.vcf", prefix=final_prefix, rec=rec_quant, chr=chromosomes))
+    #out.extend(expand("results/bed/rec/{prefix}.{rec}.{chr}.callable.bed", prefix=final_prefix, rec=rec_quant, chr=chromosomes))    
+    #out.extend(expand("results/stats/rec/{prefix}.{rec}.rdmSNP.{chr}.fai", prefix=final_prefix, rec=rec_quant, chr=chromosomes))
+    #out.extend(expand("results/sfs/rec/{rec}/{prefix}.{rec}.{chr}.png", prefix=final_prefix, rec=rec_quant, chr=chromosomes))
+    #out.extend(expand("results/ne_inference/smcpp/rec/{rec}/{prefix}.{rec}.{chr}.smc.gz", prefix=final_prefix, rec=rec_quant, chr=chromosomes))
+    #out.extend(expand("results/ne_inference/strway_plt/rec/{rec}/{prefix}.{rec}.{chr}.blueprint", prefix=final_prefix, rec=rec_quant, chr=chromosomes))
 
     return out
 
