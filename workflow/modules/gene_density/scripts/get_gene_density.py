@@ -13,9 +13,11 @@ def get_gene_density(gff_path:str, window_size:int, tbl_path:str):
     annotation_gff = gffpd.read_gff3(gff_path)
     genes_gff = annotation_gff.filter_feature_of_type(['gene']).df
     genes_gff.loc[:, 'start'] = genes_gff.loc[:, 'start'] // window_size
-    gene_density = genes_gff.groupby('start').size().reset_index(name='density')
+    genes_gff = genes_gff[['seq_id', 'start']]
+
+    gene_density = genes_gff.groupby(['seq_id', 'start']).size().reset_index(name='density')
     gene_density["start"] = gene_density["start"] * window_size
-    gene_density.insert(1, "end", gene_density["start"] + window_size)
+    gene_density.insert(2, "end", gene_density["start"] + window_size)
 
     gene_density.to_csv(tbl_path, sep="\t", header=False, index=False)
 

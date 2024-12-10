@@ -104,6 +104,23 @@ rule sfs_max_ml:
                 > {output.final_sfs}
         """
 
+rule plot_sfs:
+    """
+        Plot SFS
+    """
+    input:
+        sfs = "results/sfs/snps/{subsample}/{prefix}.{subsample}.{chr}.sfs",
+        script = workflow.source_path("../scripts/plot_sfs.py")
+    output:
+        sfs_plot = "results/sfs/snps/{subsample}/{prefix}.{subsample}.{chr}.png"
+    conda:
+        "../envs/vcf_processing.yml"
+    shell:
+        """
+            python3 {input.script} -i {input.sfs} -o {output.sfs_plot}
+        """
+
+
 rule prepare_strway_plot:
     """
         Writes inputs for StairwayPlot
@@ -226,21 +243,4 @@ yrange: 0,0
 xspacing: 2
 yspacing: 2
 fontsize: 12" > {output.blueprint}
-        """
-
-
-rule plot_sfs:
-    """
-        Plot SFS
-    """
-    input:
-        sfs = "results/sfs/snps/{subsample}/{prefix}.{subsample}.{chr}.sfs",
-        script = workflow.source_path("../scripts/plot_sfs.py")
-    output:
-        sfs_plot = "results/sfs/snps/{subsample}/{prefix}.{subsample}.{chr}.png"
-    conda:
-        "../envs/vcf_processing.yml"
-    shell:
-        """
-            python3 {input.script} -i {input.sfs} -o {output.sfs_plot}
         """

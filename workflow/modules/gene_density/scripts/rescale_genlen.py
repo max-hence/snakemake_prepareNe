@@ -40,7 +40,7 @@ def rescale_bed(input_bed:str, input_fai:str, output_fai:str):
     bed_table = read_csv(input_bed, header=None, delimiter="\t", index_col=None, names=["chrom", "chromStart", "chromEnd", "n_samples","samples"])
     bed_table["difference"] = bed_table["chromEnd"] - bed_table["chromStart"]
     correct_size = bed_table['difference'].sum()
-    print(correct_size)
+
     with open(output_fai, "w") as output:
         with open(input_fai, "r") as fai:
             for line in fai:

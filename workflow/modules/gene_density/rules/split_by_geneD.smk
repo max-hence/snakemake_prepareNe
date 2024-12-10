@@ -6,7 +6,7 @@ rule split_gff:
     input:
         gff = config["annotation"]
     output:
-        gff_by_chr = temp("results/geneD/{prefix}.{chr}.gff")
+        gff_by_chr = "results/geneD/{prefix}.{chr}.gff"
     shell:
         """
         awk -v chr={wildcards.chr} '$1 == chr' {input.gff} > {output.gff_by_chr}
@@ -40,9 +40,23 @@ rule geneD_to_bed:
         "../envs/gene_density.yml"
     shell:
         """
-        python3 {input.script} -i {input.density} -o {output.low_bed} -l 0 -u 45
-        python3 {input.script} -i {input.density} -o {output.low_bed} -l 55 -u 100
+        python3 {input.script} -i {input.density} -o {output.low_bed} -l 0 -u 30
+        python3 {input.script} -i {input.density} -o {output.high_bed} -l 30 -u 100
         """
+
+rule plot_geneD:
+    input:
+        density = "results/geneD/{prefix}.{chr}.geneD",
+        script = workflow.source_path("../scripts/plot_geneD.py")
+    output:
+        plot = "results/geneD/stats/{prefix}.{chr}.geneD.png"
+    conda:
+        "../envs/gene_density.yml"
+    shell:
+        """
+        python3 {input.script} -i {input.density} -t 30 -o {output.plot}
+        """
+
 
 rule resize_chr:
     "Measure chr size from new bed file"
@@ -51,14 +65,13 @@ rule resize_chr:
         fai = "results/stats/snps_na/{prefix}.SNPS.NA.{chr}.fai",
         script = workflow.source_path("../scripts/rescale_genlen.py")
     output:
-        fai = "results/stats/rec/{prefix}.{density_cat}.{chr}.fai",
+        fai = "results/geneD/stats/{prefix}.{density_cat}.{chr}.fai",
     conda:
-        "../envs/vcf_processing.yml"
+        "../envs/gene_density.yml"
     shell:
         """
         python3 {input.script} -i {input.bed} -f {input.fai} -o {output.fai} --method "bed"
         """
-
 
 rule split_vcf_by_geneD:
     input:
@@ -68,7 +81,7 @@ rule split_vcf_by_geneD:
     output:
         splitted_vcf = "results/geneD/vcf/{prefix}.{density_cat}.{chr}.vcf.gz",
         splitted_vcf_idx = "results/geneD/vcf/{prefix}.{density_cat}.{chr}.vcf.gz.tbi",
-        stats = "results/stats/rec/{prefix}.{density_cat}.{chr}.stats"
+        stats = "results/geneD/stats/{prefix}.{density_cat}.{chr}.stats"
     conda: 
         "../envs/gene_density.yml"
     shell:
@@ -84,19 +97,20 @@ rule rdm_sample_vcf:
     input: 
         vcf = "results/geneD/vcf/{prefix}.{density_cat}.{chr}.vcf.gz",
         vcf_idx = "results/geneD/vcf/{prefix}.{density_cat}.{chr}.vcf.gz.tbi",
-        fai = "results/stats/rec/{prefix}.{density_cat}.{chr}.fai",
-        stats = "results/stats/rec/{prefix}.{density_cat}.{chr}.stats"
+        fai = "results/geneD/stats/{prefix}.{density_cat}.{chr}.fai",
+        stats = "results/geneD/stats/{prefix}.{density_cat}.{chr}.stats",
+        script = workflow.source_path("../scripts/rescale_genlen.py")
     output:
         unsorted_vcf = temp("results/geneD/vcf/{prefix}.{density_cat}.rdmSNP.unsorted.{chr}.vcf.gz"),
         rdm_vcf = temp("results/geneD/vcf/{prefix}.{density_cat}.rdmSNP.{chr}.vcf"),
         rdm_vcf_gz = "results/geneD/vcf/{prefix}.{density_cat}.rdmSNP.{chr}.vcf.gz",
         rdm_vcf_idx = "results/geneD/vcf/{prefix}.{density_cat}.rdmSNP.{chr}.vcf.gz.tbi",
         rdm_stats = temp("results/geneD/stats/{prefix}.{density_cat}.rdmSNP.{chr}.stats"),
-        rdm_fai = "results/geneD/stats/{prefix}.{density_cat}.rdmSNP.{chr}.fai",
+        rdm_fai = "results/geneD/stats/{prefix}.{density_cat}.rdmSNP.{chr}.fai"
     conda:
         "../envs/gene_density.yml"
     params: 
-      nsnps=100000
+      nsnps=300000
     shell:
         """
         bcftools view --header-only {input.vcf} > {output.unsorted_vcf}
@@ -107,6 +121,7 @@ rule rdm_sample_vcf:
         tabix -p vcf {output.rdm_vcf_gz}
         bgzip -cd {output.rdm_vcf_gz} > {output.rdm_vcf} # for next rules
 
+        # Chr rescaling
         bcftools index -s {output.rdm_vcf_gz} > {output.rdm_stats}
         python3 {input.script} -i {input.stats} -r {output.rdm_stats} -f {input.fai} -o {output.rdm_fai} --method snp
         """

@@ -2,19 +2,19 @@ from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from pandas import read_csv
 import sys
 
-
-def geneD2bed(geneD_path:str, output_bed:str, low_range:int=0, up_range:int=100):
+def geneD2bed(geneD_path:str, output_bed:str, low_range:int=0, up_range:int=100, plot:bool=False):
     """Writes a bed file that includes position within a given gene density interval
-
+    run chr by chr
     Args:
         geneD_path (str): path/to/file.rec (with space divided columns)
         bed_path (str): output_path/to/file.bed
         low_range (int, optional): Defaults to 0.
         high_range (int, optional): Defaults to 100.
         ex : low_range = 50, high_range = 100 will keep only the regions with the 50% highest rec rate
+        plot (bool, optional): if you want to plot (.png or .svg)
     """
 
-    geneD_df = read_csv(geneD_path, delimiter = "\t", header = None, names = ["chrom", "start", "end", "density"])
+    geneD_df = read_csv(geneD_path, delimiter = "\t", header = None, names = ["seq_id", "start", "end", "density"], index_col=None)
     quantiles = [int(q)/100 for q in [low_range, up_range]]
 
     # defines treshold by chromosome
@@ -22,13 +22,11 @@ def geneD2bed(geneD_path:str, output_bed:str, low_range:int=0, up_range:int=100)
     density_quantiles = geneD_df["density"].quantile(q=quantiles)
     density_quantiles = [density_quantiles[q] for q in quantiles] # dict of low and upper range for each chrom
 
-    #print(density_quantiles[0], density_quantiles[1])
     # writes bed file
     with open(output_bed, "w") as bedfile:
         start_intervall = None
         for _, row in geneD_df.iterrows():
             new_start, new_end, density = int(round(row["start"])), int(row["end"]), int(row["density"])
-
             # if position in rec rate range and not NA, interval is written
             if density >= density_quantiles[0] and density < density_quantiles[1]:
                 if start_intervall == None: # to merge contiguous intervals
@@ -36,11 +34,10 @@ def geneD2bed(geneD_path:str, output_bed:str, low_range:int=0, up_range:int=100)
                 previous_end = new_end
             else:
                 if start_intervall != None:
-                    bedfile.write(f"{row['chrom']}\t{start_intervall}\t{previous_end}\n")
+                    bedfile.write(f"{row["seq_id"]}\t{start_intervall}\t{previous_end}\n")
                 start_intervall = None
 
-        if start_intervall != None: bedfile.write(f"{row['chrom']}\t{start_intervall}\t{new_end}\n")
-
+        if start_intervall != None: bedfile.write(f"{row["seq_id"]}\t{start_intervall}\t{new_end}\n")
 
 def parse_command_line():
     parser = ArgumentParser(
