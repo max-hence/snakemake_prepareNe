@@ -25,6 +25,7 @@ if config["density"]:
             config
     use rule * from density as density_*
 
+
 # Force chr name matching in paths
 wildcard_constraints:
     chr = "|".join(get_chr_list(config["fai_path"])),

@@ -53,10 +53,10 @@ rule split_vcf:
         vcf_idx = "results/vcf/snps_na/{prefix}.SNPS.NA.{chr}.vcf.gz.tbi",
         bed = "results/bed/rec/{prefix}.{rec}.{chr}.bed"
     output:
-        splitted_vcf = "results/vcf/rec/{prefix}.{rec}.{chr}.vcf",
-        splitted_vcf_gz = "results/vcf/rec/{prefix}.{rec}.{chr}.vcf.gz",
-        splitted_vcf_idx = "results/vcf/rec/{prefix}.{rec}.{chr}.vcf.gz.tbi",
-        stats = "results/stats/rec/{prefix}.{rec}.{chr}.stats"
+        splitted_vcf = "results/rec/vcf/{prefix}.{rec}.{chr}.vcf",
+        splitted_vcf_gz = "results/rec/vcf/{prefix}.{rec}.{chr}.vcf.gz",
+        splitted_vcf_idx = "results/rec/vcf/{prefix}.{rec}.{chr}.vcf.gz.tbi",
+        stats = "results/rec/stats/{prefix}.{rec}.{chr}.stats"
     conda:
         "../envs/vcf_processing.yml"
     shell:
@@ -71,18 +71,18 @@ rule split_vcf:
 rule rdm_sample_vcf:
     " Randomly sampling SNPs "
     input: 
-        vcf = "results/vcf/rec/{prefix}.{rec}.{chr}.vcf.gz",
-        vcf_idx = "results/vcf/rec/{prefix}.{rec}.{chr}.vcf.gz.tbi",
-        fai = "results/stats/rec/{prefix}.{rec}.{chr}.fai",
-        stats = temp("results/stats/rec/{prefix}.{rec}.{chr}.stats"),
+        vcf = "results/rec/vcf/{prefix}.{rec}.{chr}.vcf.gz",
+        vcf_idx = "results/rec/vcf/{prefix}.{rec}.{chr}.vcf.gz.tbi",
+        fai = "results/rec/stats/{prefix}.{rec}.{chr}.fai",
+        stats = temp("results/rec/stats/{prefix}.{rec}.{chr}.stats"),
         script = workflow.source_path("../scripts/rescale_genlen.py")
     output:
-        unsorted_vcf = temp("results/vcf/rec/{prefix}.{rec}.rdmSNP.unsorted.{chr}.vcf.gz"),
-        rdm_vcf = temp("results/vcf/rec/{prefix}.{rec}.rdmSNP.{chr}.vcf"),
-        rdm_vcf_gz = "results/vcf/rec/{prefix}.{rec}.rdmSNP.{chr}.vcf.gz",
-        rdm_vcf_idx = "results/vcf/rec/{prefix}.{rec}.rdmSNP.{chr}.vcf.gz.tbi",
-        rdm_stats = temp("results/stats/rec/{prefix}.{rec}.rdmSNP.{chr}.stats")
-        rdm_fai = "results/stats/rec/{prefix}.{rec}.rdmSNP.{chr}.fai",
+        unsorted_vcf = temp("results/rec/vcf/{prefix}.{rec}.rdmSNP.unsorted.{chr}.vcf.gz"),
+        rdm_vcf = temp("results/rec/vcf/{prefix}.{rec}.rdmSNP.{chr}.vcf"),
+        rdm_vcf_gz = "results/rec/vcf/{prefix}.{rec}.rdmSNP.{chr}.vcf.gz",
+        rdm_vcf_idx = "results/rec/vcf/{prefix}.{rec}.rdmSNP.{chr}.vcf.gz.tbi",
+        rdm_stats = temp("results/rec/stats/{prefix}.{rec}.rdmSNP.{chr}.stats")
+        rdm_fai = "results/rec/stats/{prefix}.{rec}.rdmSNP.{chr}.fai",
     conda:
         "../envs/vcf_processing.yml"
     params: 
@@ -109,11 +109,11 @@ rule rdm_sample_vcf:
 rule sfs_projection:
     "Run easySFS on the sub vcf"
     input:
-        subsampled_vcf = "results/vcf/rec/{prefix}.{rec}.rdmSNP.{chr}.vcf",
+        subsampled_vcf = "results/rec/vcf/{prefix}.{rec}.rdmSNP.{chr}.vcf",
         pop_path = "results/{prefix}.pop",
         easySFS = config["easySFS_path"],
     output:
-        preview = "results/sfs/rec/{prefix}.{rec}.preview.{chr}.txt",
+        preview = "results/rec/sfs/{prefix}.{rec}.preview.{chr}.txt",
     conda:
         "../envs/easySFS.yml"
     shell:
@@ -127,10 +127,10 @@ rule get_best_params:
         merge all results from easySFS run by chr
     """
     input:
-        previews = get_previews("results/sfs/rec/{prefix}.{rec}.preview.{chr}.txt"),
+        previews = get_previews("results/rec/sfs/{prefix}.{rec}.preview.{chr}.txt"),
         get_sfs_param = workflow.source_path("../scripts/get_sfs_param.py")
     output:
-        best_sample = "results/sfs/rec/{prefix}.{rec}.best_sample.txt"
+        best_sample = "results/rec/sfs/{prefix}.{rec}.best_sample.txt"
     conda:
         "../envs/vcf_processing.yml"
     shell:
@@ -143,11 +143,11 @@ rule intersect_beds:
     Trim callable bed to keep only regions inside the given rec threshold (merging btw 2 beds)
     """
     input:
-        bed = "results/bed/rec/{prefix}.{rec}.{chr}.bed",
+        bed = "results/rec/bed/{prefix}.{rec}.{chr}.bed",
         callable_bed = "results/bed/raw/{prefix}.raw.{chr}.callable.bed",
         script = workflow.source_path("../scripts/merge_bed.py")
     output:
-        intersect_bed = "results/bed/rec/{prefix}.{rec}.intersect.{chr}.bed"
+        intersect_bed = "results/rec/bed/{prefix}.{rec}.intersect.{chr}.bed"
     conda:
         "../envs/vcf_processing.yml"
     shell:
@@ -162,13 +162,13 @@ rule trim_bed:
         Resize chr length based on trimmed bed
     """
     input:
-        best_sample = "results/sfs/rec/{prefix}.{rec}.best_sample.txt",
-        rescaled_fai = "results/stats/rec/{prefix}.{rec}.rdmSNP.{chr}.fai",
-        intersect_bed = "results/bed/rec/{prefix}.{rec}.intersect.{chr}.bed",
+        best_sample = "results/rec/sfs/{prefix}.{rec}.best_sample.txt",
+        rescaled_fai = "results/rec/stats/{prefix}.{rec}.rdmSNP.{chr}.fai",
+        intersect_bed = "results/rec/bed/{prefix}.{rec}.intersect.{chr}.bed",
         script = workflow.source_path("../scripts/rescale_genlen.py")
     output:
-        trimmed_bed = "results/bed/rec/{prefix}.{rec}.{chr}.callable.bed",
-        resized_fai = "results/stats/rec/{prefix}.{rec}.rdmSNP.{chr}.fai"
+        trimmed_bed = "results/rec/bed/{prefix}.{rec}.{chr}.callable.bed",
+        resized_fai = "results/rec/stats/{prefix}.{rec}.rdmSNP.{chr}.fai"
     conda:
         "../envs/vcf_processing.yml"
     shell:

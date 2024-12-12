@@ -1,15 +1,19 @@
-# Prepare inputs files for stairway_plot and smc++
+# Prepare inputs files for stairway_plot and smc++ for vcf splitted by gene density
+
+include: "common.smk"
+mu = config["mutation_rate"]
+generation = config["generation_time"]
 
 rule sfs_projection:
     """
         Run easySFS to do SFS projection and find the best sample/snps ratio
     """
         input:
-            vcf = "results/vcf/geneD/{prefix}.{density_cat}.rdmSNP.{chr}.vcf",
+            vcf = "results/geneD/vcf/{prefix}.{density}.rdmSNP.{chr}.vcf",
             pop_path = "results/{prefix}.pop",
             easySFS = config["easySFS_path"],
         output:
-            preview = "results/sfs/snps/{prefix}.{density_cat}.rdmSNP.preview.{chr}.txt",
+            preview = "results/geneD/sfs/{prefix}.{density}.rdmSNP.preview.{chr}.txt",
         conda:
             "../envs/easySFS.yml"
         shell:
@@ -25,17 +29,17 @@ rule get_best_params:
         - one maximizes a likelihood value (including n_snps and n_indiv as params)
     """
     input:
-        previews = get_previews("results/sfs/snps/{prefix}.{density_cat}.rdmSNP.preview.{chr}.txt"),
-        get_sfs_param = "/groups/plantlp/vcf_processing/scripts/snakemake_prepareNe/workflow/scripts/get_sfs_param.py"
-
+        previews = get_previews,
+        get_sfs_param = workflow.source_path("../scripts/get_sfs_param.py")
     output:
-        best_sample = "results/sfs/geneD/{prefix}.geneD.best_params.txt",
+        best_sample = "results/geneD/sfs/{prefix}.{density}.best_params.txt",
     conda:
-        "../envs/vcf_processing.yml"
+        "../envs/gene_density.yml"
     shell:
         """
+        echo {input.previews}
         previews=$(echo {input.previews} | tr ' ' ',')
-        python3 {input.get_sfs_param} -i $previews -m "ml" -o {output.best_sample_ml}
+        python3 {input.get_sfs_param} -i $previews -m "ml" -o {output.best_sample}
         """
 
 
@@ -45,17 +49,17 @@ rule trim_bed:
         Resize chr length based on trimmed bed
     """
     input:
-        best_sample = "results/sfs/snps/{prefix}.geneD.best_params.txt",
-        vcf = "results/vcf/geneD/{prefix}.{density_cat}.rdmSNP.{chr}.vcf.gz",
-        vcf_idx = "results/vcf/geneD/{prefix}.{density_cat}.rdmSNP.{chr}.vcf.gz.tbi",
-        fai = "results/stats/geneD/{prefix}.{density_cat}.rdmSNP.{chr}.fai",
+        best_sample = "results/geneD/sfs/{prefix}.{density}.best_params.txt",
+        vcf = "results/geneD/vcf/{prefix}.{density}.rdmSNP.{chr}.vcf.gz",
+        vcf_idx = "results/geneD/vcf/{prefix}.{density}.rdmSNP.{chr}.vcf.gz.tbi",
+        fai = "results/geneD/stats/{prefix}.{density}.rdmSNP.{chr}.fai",
         raw_bed = "results/bed/raw/{prefix}.raw.{chr}.callable.bed",
-        script = "/groups/plantlp/vcf_processing/scripts/snakemake_prepareNe/workflow/scripts/rescale_genlen.py"
+        script = workflow.source_path("../scripts/rescale_genlen.py")
     output:
-        trimmed_bed = "bed/snps/max/{prefix}.{density_cat}.geneD.{chr}.callable.bed",
-        rescaled_fai = "results/stats/geneD/{prefix}.{density_cat}.rdmSNP.trimmed.{chr}.fai"
+        trimmed_bed = "results/geneD/bed/{prefix}.{density}.{chr}.callable.bed",
+        rescaled_fai = "results/geneD/stats/{prefix}.{density}.rdmSNP.trimmed.{chr}.fai"
     conda:
-        "../envs/vcf_processing.yml"
+        "../envs/gene_density.yml"
     shell:
         """
         sampling_size=$(( $(tail -1 {input.best_sample} | cut -f1 ) / 2 ))
@@ -63,7 +67,7 @@ rule trim_bed:
         awk -v n=$sampling_size '$4 >= n' {input.raw_bed} > {output.trimmed_bed}
         
         python3 {input.script} -i {output.trimmed_bed} -f {input.fai} \
-        -o {output.rescaled_fai}
+        -o {output.rescaled_fai} --method bed
         """
 
     #####################
@@ -75,13 +79,14 @@ rule sfs:
         Run easySFS with previously estimated sample size
     """
     input:
-        vcf = "results/vcf/geneD/{prefix}.{density_cat}.rdmSNP.{chr}.vcf",
+        vcf = "results/geneD/vcf/{prefix}.{density}.rdmSNP.{chr}.vcf",
         pop_path = "results/{prefix}.pop",
-        fai = "results/stats/geneD/{prefix}.{density_cat}.rdmSNP.trimmed.{chr}.fai", # for chr length
+        fai = "results/geneD/stats/{prefix}.{density}.rdmSNP.trimmed.{chr}.fai", # for chr length
+        best_sample = "results/geneD/sfs/{prefix}.{density}.best_params.txt",
         easySFS = config["easySFS_path"]
     output:
-        sfs_dir = temp(directory("results/sfs/geneD/{density_cat}/{prefix}.{density_cat}.{chr}")),
-        final_sfs = "results/sfs/geneD/{density_cat}/{prefix}.{density_cat}.{chr}.sfs"
+        sfs_dir = temp(directory("results/geneD/sfs/{density}/{prefix}.{density}.{chr}")),
+        final_sfs = "results/geneD/sfs/{density}/{prefix}.{density}.{chr}.sfs"
     conda:
         "../envs/easySFS.yml"
     shell:
@@ -103,32 +108,32 @@ rule sfs:
         """
 
 
-rule plot_sfs_small:
+rule plot_sfs:
     """
         Plot SFS 
     """
     input:
-        sfs = "results/sfs/geneD/{density_cat}/{prefix}.{density_cat}.{chr}.sfs",
-        script = "/groups/plantlp/vcf_processing/scripts/snakemake_prepareNe/workflow/scripts/plot_sfs.py"
+        sfs = "results/sfs/geneD/{density}/{prefix}.{density}.{chr}.sfs",
+        script = workflow.source_path("../scripts/plot_sfs.py")
     output:
-        sfs_plot = "results/sfs/geneD/{density_cat}/{prefix}.{density_cat}.{chr}.png"
+        sfs_plot = "results/geneD/sfs/{density}/{prefix}.{density}.{chr}.png"
     conda:
-        "../envs/vcf_processing.yml"
+        "../envs/gene_density.yml"
     shell:
         """
             python3 {input.script} -i {input.sfs} -o {output.sfs_plot}
         """
 
-rule prepare_strway_plot_small:
+rule prepare_strway_plot:
     """
         Writes inputs for StairwayPlot
     """
     input:
-        sfs = "results/sfs/geneD/{density_cat}/{prefix}.{density_cat}.{chr}.sfs",
-        fai = "results/stats/geneD/{prefix}.{density_cat}.rdmSNP.trimmed.{chr}.fai", # for chr length
+        sfs = "results/geneD/sfs/{density}/{prefix}.{density}.{chr}.sfs",
+        fai = "results/geneD/stats/{prefix}.{density}.rdmSNP.trimmed.{chr}.fai", # for chr length
         stairway_plot_dir = config["stairway_plot_dir"],
     output:
-        blueprint = "results/ne_inference/strway_plt/geneD/{density_cat}/{prefix}.{density_cat}.{chr}.blueprint"
+        blueprint = "results/geneD/ne_inference/strway_plt/{density}/{prefix}.{density}.{chr}.blueprint"
     shell:
         """
             n_seq=$(( $(wc -w < {input.sfs}) * 2))
@@ -143,16 +148,74 @@ smallest_size_of_SFS_bin_used_for_estimation: 1
 largest_size_of_SFS_bin_used_for_estimation: $((n_seq/2 - 1))
 pct_training: 0.67
 nrand: $(((n_seq-2)/4))	$(((n_seq-2)/2))	$(((n_seq-2)*3/4))	$((n_seq-2))
-project_dir: $(pwd)/results/stairway_plot/snps/small/{wildcards.prefix}.SNPS.small.{wildcards.chr}/
+project_dir: $(pwd)/results/geneD/stairway_plot/{wildcards.prefix}.{wildcards.density}.{wildcards.chr}/
 stairway_plot_dir: {input.stairway_plot_dir}
 ninput: 200
 #random_seed: 6
 mu: {mu}
-year_per_generation: 1
-plot_title: {wildcards.prefix}.SNPS.small.{wildcards.chr}
+year_per_generation: {generation}
+plot_title: {wildcards.prefix}.{wildcards.density}.{wildcards.chr}
 xrange: 0.1,10000
 yrange: 0,0
 xspacing: 2
 yspacing: 2
 fontsize: 12" > {output.blueprint}
+        """
+
+    ##############
+    ### SMC ++ ###
+    ##############
+
+rule flip_bed:
+    """
+        Reverse bed file to show positions that will be excluded for SMC++ input
+    """
+    input:
+        bed = "results/geneD/bed/{prefix}.{density}.{chr}.callable.bed",
+        raw_bed = "results/bed/raw/{prefix}.raw.{chr}.callable.bed",
+        script = workflow.source_path("../scripts/reverse_bed.py")
+    output:
+        mask = temp("results/geneD/bed/{prefix}.{density}.callable.flipped.{chr}.bed"),
+        mask_gz = "results/geneD/bed/{prefix}.{density}.callable.flipped.{chr}.bed.gz",
+        mask_idx = "results/geneD/bed/{prefix}.{density}.callable.flipped.{chr}.bed.gz.tbi"
+    conda:
+        "../envs/gene_density.yml"
+    shell:
+        """
+        last_pos=$(tail -1 {input.raw_bed} | cut -f3)
+        python3 {input.script} -i {input.bed} -l $last_pos -o {output.mask}
+
+        bgzip -c {output.mask} > {output.mask_gz}
+        tabix -p bed {output.mask_gz}
+        """
+
+rule prepare_smcpp:
+    """
+        Prepare .smc file per chr with the callability.bed as mask
+    """
+    input:
+        vcf = "results/geneD/vcf/{prefix}.{density}.rdmSNP.{chr}.vcf.gz",
+        vcf_idx = "results/geneD/vcf/{prefix}.{density}.rdmSNP.{chr}.vcf.gz.tbi",
+        pop_path = "results/{prefix}.pop",
+        fai = "results/geneD/stats/{prefix}.{density}.rdmSNP.{chr}.fai",
+        mask = "results/geneD/bed/{prefix}.{density}.callable.flipped.{chr}.bed.gz",
+        mask_idx = "results/geneD/bed/{prefix}.{density}.callable.flipped.{chr}.bed.gz.tbi",
+        smcpp = config["smcpp"]
+    output:
+        smcpp_input = "results/geneD/ne_inference/smcpp/{density}/{prefix}.{density}.{chr}.smc.gz"
+    conda:
+        "../envs/gene_density.yml"
+    shell:
+        """
+        length=$(cut -f2 {input.fai})
+        pop_input=$(awk '{{a[$2] = a[$2] (a[$2] ? "," : "") $1}} END {{ for (key in a) {{print key ":" a[key]}} }}' {input.pop_path}) 
+
+        singularity exec {input.smcpp} smc++ vcf2smc \
+            {input.vcf} \
+            {output.smcpp_input} \
+            {wildcards.chr} \
+            $pop_input \
+            --length $length \
+            --mask {input.mask} \
+            -v
         """

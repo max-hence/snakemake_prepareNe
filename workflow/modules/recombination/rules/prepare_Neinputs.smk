@@ -1,4 +1,4 @@
-# Prepare inputs files for stairway_plot and smc++ for vcf filter on recombination
+# Prepare inputs files for stairway_plot and smc++ for vcf splitted by recombination rate
 
 include: "common.smk"
 mu = config["mutation_rate"]

@@ -3,5 +3,10 @@
     --> Merge à la fin !
 
 - Module à part pour la recombinaison, comme gene density
+    - Passer à deux catégories de recombination
 
 - Mettre les .vcf et autre en temp()
+
+- Intégrer le module rdm dans les autres modules
+
+- Trouver une solution pour pas avoir à dupliquer tous les scripts

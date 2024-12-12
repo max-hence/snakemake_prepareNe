@@ -11,3 +11,8 @@ Executes the following functions:
     - Rescales chr length to take into account loss of regions which have too many missing data
     - Generates SFS on every chr with different treatments
     - Prepare StairwayPlot and SMC++ inputs
+
+The minimum you need is a :
+    - vcf file, zipped and indexed
+    - fai-like file giving the id and size of chr
+    - bed file summarizing callability ()

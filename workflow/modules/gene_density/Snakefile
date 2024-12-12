@@ -1,17 +1,14 @@
 configfile: "config/config.yml"
 include: "rules/common.smk"
 include: "rules/split_by_geneD.smk"
+include: "rules/prepare_Neinputs.smk"
 
 wildcard_constraints:
     chr = "|".join(get_chr_list(config["fai_path"])),
     prefix = config["final_prefix"],
-    density_cat = "|".join(["lowD","highD"])
+    density = "|".join(["lowD","highD"])
 
-chromosomes: list = get_chr_list(config["fai_path"])
 
 rule all:
     input:
-        expand("results/geneD/stats/{prefix}.{chr}.geneD.png", prefix=config["final_prefix"], chr=chromosomes),
-        #expand("results/geneD/{prefix}.{chr}.geneD", prefix=config["final_prefix"], chr=chromosomes),
-        expand("results/geneD/vcf/{prefix}.{density_cat}.rdmSNP.{chr}.vcf.gz", prefix=config["final_prefix"], density_cat=["lowD","highD"], chr=chromosomes),
-        expand("results/geneD/vcf/{prefix}.{density_cat}.rdmSNP.{chr}.vcf.gz.tbi", prefix=config["final_prefix"], density_cat=["lowD","highD"], chr=chromosomes)
+        get_output()

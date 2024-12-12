@@ -26,7 +26,6 @@ def get_output():
     sampling_method: list = ["small","max","ml","strict"]
     out: list  = []
 
-
     if final_prefix == "":
         raise (WorkflowError("'final_prefix' is not set in config."))
 
@@ -34,7 +33,7 @@ def get_output():
     out.extend(expand("results/vcf/snps/{prefix}.SNPS.{chr}.vcf.gz", prefix=final_prefix, chr=chromosomes))
     out.extend(expand("results/vcf/snps/{prefix}.SNPS.{chr}.vcf.gz.tbi", prefix=final_prefix, chr=chromosomes))
 
-    if not config["stop"]:       
+    if not config["stop"]:      
         # SFS plots
         out.extend(expand("results/sfs/snps/{subsample}/{prefix}.{subsample}.{chr}.png", prefix=final_prefix, chr=chromosomes, subsample=sampling_method))
         out.extend(expand("results/sfs/snps_na/{prefix}.{chr}.png", prefix=final_prefix, chr=chromosomes))

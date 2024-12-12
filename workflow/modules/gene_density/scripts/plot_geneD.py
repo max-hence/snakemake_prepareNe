@@ -1,3 +1,5 @@
+# Plot gene density of a chromosome colored by categories
+
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from pandas import read_csv
 import matplotlib.pyplot as plt
@@ -18,8 +20,8 @@ def cut_chr_by_geneD(geneD_df):
         chr_chunks.append(geneD_df.iloc[start-first_idx:i-first_idx, :])
     return chr_chunks
 
-def plot_geneD(geneD_path:str, thresholds:list, plot_path:str):
 
+def plot_geneD(geneD_path:str, thresholds:list, plot_path:str):
     geneD_df = read_csv(geneD_path, delimiter = "\t", header = None, names = ["seq_id", "start", "end", "density"], index_col=None)
     
     # defines tresholds by chromosome
@@ -40,7 +42,7 @@ def plot_geneD(geneD_path:str, thresholds:list, plot_path:str):
     
     plt.savefig(plot_path)
     # need to divide density map by chunk of same density category for goof visualisation
-    
+
 
 def parse_command_line():
     parser = ArgumentParser(
@@ -48,7 +50,7 @@ def parse_command_line():
         epilog="""\n
     """)
     parser.add_argument('-i', '--input', type=str,
-        help="Path to file.gendist"
+        help="Path to file.geneD"
     )
     parser.add_argument('-t', '--threshold', nargs="+", type=int,
         help="One threshold or two to split density map in two, in %"
@@ -56,7 +58,7 @@ def parse_command_line():
         # or two threshold and one color for values below first and other of values above 2nd
     )
     parser.add_argument('-o', '--output', type=str,
-        help="Path to file.bed"
+        help="Path to file.png"
     )
 
     args = parser.parse_args()
