@@ -28,20 +28,24 @@ def plot_geneD(geneD_path:str, thresholds:list, plot_path:str):
     quantiles = [int(q)/100 for q in thresholds]
     density_quantiles = geneD_df["density"].quantile(q=quantiles)
     density_quantiles = [density_quantiles[q] for q in quantiles]
+    
+    print(density_quantiles)
 
     if len(density_quantiles) == 1: density_quantiles.append(density_quantiles[0])
 
     geneD_df["color"] = geneD_df['density'].apply(lambda x: '#D44B53' if x >= density_quantiles[1] else '#009e73' if x < density_quantiles[0] else '#7F7F7F') # red, blue, grey
     
     plt.figure(figsize=(14, 8))
-    plt.plot(geneD_df['start'], geneD_df['density'], linestyle='-', color="#7F7F7F", lw=2)
+    plt.scatter(geneD_df['start'], geneD_df['density'], color=geneD_df["color"], s=10)
 
-    chr_chunks = cut_chr_by_geneD(geneD_df)
-    for chunk in chr_chunks:
-        plt.plot(chunk['start'], chunk['density'], color=chunk['color'].unique()[0], lw=2) # degue mais ça passe
-    
     plt.savefig(plot_path)
+
+    # for curves but not good and harsh
     # need to divide density map by chunk of same density category for goof visualisation
+    # chr_chunks = cut_chr_by_geneD(geneD_df)
+    # for chunk in chr_chunks:
+    #   plt.plot(chunk['start'], chunk['density'], color=chunk['color'].unique()[0], lw=2) # degue mais ça passe
+
 
 
 def parse_command_line():
