@@ -13,12 +13,14 @@ rule prepare_pop:
         pop_path = "results/{prefix}.pop"
     conda:
         "../envs/vcf_processing.yml"
+    log:
+        "logs/{prefix}.log"
     shell:
         """ 
             bcftools query -l {input.vcf} | awk '{{print $0 "\tpop1"}}' > {output.pop_path}
         """
 
-rule split_vcf:
+rule split_by_chr:
     """
         split vcf by chr
     """
@@ -30,6 +32,8 @@ rule split_vcf:
         stats = "results/stats/raw/{prefix}.raw.{chr}.stats"
     conda:
         "../envs/vcf_processing.yml"
+    log:
+        "logs/{prefix}.{chr}.log"
     shell:
         """
             bcftools view -O z -r {wildcards.chr} -o {output.splitted_vcf} {input.vcf}
@@ -42,6 +46,8 @@ rule split_bed:
         bed = config["bed_path"]
     output:
         splitted_bed = "results/bed/raw/{prefix}.raw.{chr}.callable.bed"
+    log:
+        "logs/{prefix}.{chr}.log"
     shell:
         """
             awk -v k="{wildcards.chr}" '$1 == k' "{input.bed}" > {output.splitted_bed}
@@ -65,6 +71,8 @@ rule filter_snps:
         snps_stats = "results/stats/snps/full/{prefix}.SNPS.{chr}.stats"
     conda:
         "../envs/vcf_processing.yml"
+    log:
+        "logs/{prefix}.{chr}.log"
     shell:
         """
         bcftools view -Oz -m2 -M2 -v snps -o {output.vcf_snps} {input.splitted_vcf}
@@ -87,6 +95,8 @@ rule rescale_chr:
         rescaled_fai = "results/stats/snps/full/{prefix}.SNPS.full.{chr}.fai"
     conda:
         "../envs/vcf_processing.yml"
+    log:
+        "logs/{prefix}.{chr}.log"
     shell:
         """
             python3 {input.script} -i {input.snps_stats} -r {input.raw_stats} -f {input.fai} -o {output.rescaled_fai} --method snp
@@ -104,19 +114,21 @@ rule sfs_projection:
     """
         Run easySFS to run SFS projection for each sample size (2:2n)
     """
-        input:
-            vcf_snps = "results/vcf/snps/{prefix}.SNPS.{chr}.vcf",
-            pop_path = "results/{prefix}.pop",
-            easySFS = config["easySFS_path"],
-        output:
-            preview = "results/sfs/snps/{prefix}.SNPS.preview.{chr}.txt",
-        conda:
-            "../envs/easySFS.yml"
-        shell:
-            """
-                python3 {input.easySFS} -i {input.vcf_snps} -p {input.pop_path} \
-                --preview -v -a > {output.preview}
-            """
+    input:
+        vcf_snps = "results/vcf/snps/{prefix}.SNPS.{chr}.vcf",
+        pop_path = "results/{prefix}.pop",
+        easySFS = config["easySFS_path"],
+    output:
+        preview = "results/sfs/snps/{prefix}.SNPS.preview.{chr}.txt",
+    conda:
+        "../envs/easySFS.yml"
+    log:
+        "logs/{prefix}.{chr}.log"
+    shell:
+        """
+            python3 {input.easySFS} -i {input.vcf_snps} -p {input.pop_path} \
+            --preview -v -a > {output.preview}
+        """
 
 rule get_best_params:
     """
@@ -131,13 +143,15 @@ rule get_best_params:
         best_sample_size = "results/sfs/snps/{prefix}.SNPS.best_sample_{sfs_params_method}.txt"
     conda:
         "../envs/vcf_processing.yml"
+    log:
+        "logs/{prefix}.{sfs_params_method}.log"
     params:
         method = lambda wildcards: wildcards.sfs_params_method
     shell:
         """
             python3 {input.script} -i {input.previews} --method {params.method} -o {output.best_sample_size}
         """
-    
+
     # Max SNPs
 rule trim_bed_max_ml:
     """
@@ -150,6 +164,8 @@ rule trim_bed_max_ml:
         trimmed_bed = "results/bed/snps/{sfs_params_method}/{prefix}.SNPS.{sfs_params_method}.{chr}.callable.bed"
     conda:
         "../envs/vcf_processing.yml"
+    log:
+        "logs/{prefix}.{sfs_params_method}.{chr}.log"
     shell:
         """
         sampling_size=$(( $(tail -1 {input.best_sample} | cut -f1 ) / 2 ))
@@ -168,6 +184,8 @@ rule trim_bed_small:
         trimmed_bed = "results/bed/snps/small/{prefix}.SNPS.small.{chr}.callable.bed",
     conda:
         "../envs/vcf_processing.yml"
+    log:
+        "logs/{prefix}.{chr}.log"
     shell:
         """
         sampling_size=5
@@ -187,6 +205,8 @@ rule trim_bed_strict:
         trimmed_bed = "results/bed/snps/strict/{prefix}.SNPS.strict.{chr}.callable.bed"
     conda:
         "../envs/vcf_processing.yml"
+    log:
+        "logs/{prefix}.{chr}.log"
     shell:
         """
         sampling_size=$(wc -l < {input.pop_path})
@@ -206,6 +226,8 @@ rule resize_chr:
         rescaled_fai = "results/stats/snps/{subsample}/{prefix}.SNPS.{subsample}.{chr}.fai"
     conda:
         "../envs/vcf_processing.yml"
+    log:
+        "logs/{prefix}.{subsample}.{chr}.log"
     shell:
         """
         python3 {input.script} -i {input.trimmed_bed} -f {input.fai} -o {output.rescaled_fai} --method bed

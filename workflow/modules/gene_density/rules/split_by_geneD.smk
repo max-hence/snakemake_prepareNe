@@ -125,5 +125,5 @@ rule rdm_sample_vcf:
 
         # Chr rescaling
         bcftools index -s {output.rdm_vcf_gz} > {output.rdm_stats}
-        python3 {input.script} -i {input.stats} -r {output.rdm_stats} -f {input.fai} -o {output.rdm_fai} --method snp
+        python3 {input.script} -r {input.stats} -i {output.rdm_stats} -f {input.fai} -o {output.rdm_fai} --method snp
         """

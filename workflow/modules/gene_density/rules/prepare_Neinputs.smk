@@ -15,7 +15,7 @@ rule sfs_projection:
         output:
             preview = "results/geneD/sfs/{prefix}.{density}.rdmSNP.preview.{chr}.txt",
         conda:
-            "../envs/easySFS.yml"
+            "../envs/gene_density.yml"
         shell:
             """
                 python3 {input.easySFS} -i {input.vcf} -p {input.pop_path} \
@@ -50,8 +50,6 @@ rule trim_bed:
     """
     input:
         best_sample = "results/geneD/sfs/{prefix}.{density}.best_params.txt",
-        vcf = "results/geneD/vcf/{prefix}.{density}.rdmSNP.{chr}.vcf.gz",
-        vcf_idx = "results/geneD/vcf/{prefix}.{density}.rdmSNP.{chr}.vcf.gz.tbi",
         fai = "results/geneD/stats/{prefix}.{density}.rdmSNP.{chr}.fai",
         raw_bed = "results/bed/raw/{prefix}.raw.{chr}.callable.bed",
         script = workflow.source_path("../scripts/rescale_genlen.py")
@@ -88,7 +86,7 @@ rule sfs:
         sfs_dir = temp(directory("results/geneD/sfs/{density}/{prefix}.{density}.{chr}")),
         final_sfs = "results/geneD/sfs/{density}/{prefix}.{density}.{chr}.sfs"
     conda:
-        "../envs/easySFS.yml"
+        "../envs/gene_density.yml"
     shell:
         """
             sampling_size=$(( $(tail -1 {input.best_sample} | cut -f1 )))

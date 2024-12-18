@@ -8,7 +8,15 @@ wildcard_constraints:
     prefix = config["final_prefix"],
     density = "|".join(["lowD","highD"])
 
+FINAL_PREFIX = config["final_prefix"]
+CHROMOSOMES: list = get_chr_list(config["fai_path"])
+DENSITY_CAT: list = ["lowD","highD"]
 
 rule all:
     input:
-        get_output()
+        # Plot gene density
+        expand("results/geneD/stats/{prefix}.{chr}.geneD.png", prefix=FINAL_PREFIX, chr=CHROMOSOMES),
+        # Stairway Plot inputs
+        expand("results/geneD/ne_inference/strway_plt/{density}/{prefix}.{density}.{chr}.blueprint", prefix=FINAL_PREFIX, density=DENSITY_CAT, chr=CHROMOSOMES),
+        # SMC++ inputs
+        expand("results/geneD/ne_inference/smcpp/{density}/{prefix}.{density}.{chr}.smc.gz", prefix=FINAL_PREFIX, density=DENSITY_CAT, chr=CHROMOSOMES)

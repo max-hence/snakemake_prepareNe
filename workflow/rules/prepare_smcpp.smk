@@ -24,6 +24,8 @@ rule prepare_smcpp_full:
         smcpp_input = "results/ne_inference/smcpp/full/{prefix}.SNPS.full.{chr}.smc.gz"
     conda:
         "../envs/vcf_processing.yml"
+    log:
+        "logs/{prefix}.{chr}.log"
     shell:
         """
         length=$(cut -f2 {input.fai})
@@ -52,6 +54,8 @@ rule flip_bed:
         mask_idx = "results/bed/snps/{subsample}/{prefix}.SNPS.{subsample}.callable.flipped.{chr}.bed.gz.tbi"
     conda:
         "../envs/vcf_processing.yml"
+    log:
+        "logs/{prefix}.{subsample}.{chr}.log"
     shell:
         """
         last_pos=$(tail -1 {input.raw_bed} | cut -f3)
@@ -77,6 +81,8 @@ rule prepare_smcpp_small:
         smcpp_input = "results/ne_inference/smcpp/{subsample}/{prefix}.SNPS.{subsample}.{chr}.smc.gz"
     conda:
         "../envs/vcf_processing.yml"
+    log:
+        "logs/{prefix}.{subsample}.{chr}.log"
     shell:
         """
         length=$(cut -f2 {input.fai})
@@ -110,6 +116,8 @@ rule flip_bed_na:
         mask_idx = "results/bed/{prefix}.SNPS.NA.{chr}.callable.flipped.bed.gz.tbi"
     conda:
         "../envs/vcf_processing.yml"
+    log:
+        "logs/{prefix}.{chr}.log"
     shell:
         """ 
         last_pos=$(tail -1 {input.raw_bed} | cut -f3)
@@ -135,6 +143,8 @@ rule prepare_smcpp_na:
         smcpp_input = "results/ne_inference/smcpp/snps_na/{prefix}.SNPS.NA.{chr}.smc.gz"
     conda:
         "../envs/vcf_processing.yml"
+    log:
+        "logs/{prefix}.{chr}.log"
     shell:
         """
         length=$(cut -f2 {input.fai})

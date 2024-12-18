@@ -10,3 +10,5 @@
 - Intégrer le module rdm dans les autres modules
 
 - Trouver une solution pour pas avoir à dupliquer tous les scripts
+
+- Inclure la conversion marey map into .rec inside pipeline

@@ -1,4 +1,4 @@
-name: vcf_processing
+name: genetic_div
 channels:
   - conda-forge
   - bioconda
@@ -7,8 +7,9 @@ dependencies:
   - python=3.12
   - vcftools==0.1.16
   - bcftools==1.18
-  - pip=24.0
   - pip:
-  - numpy
-  - pandas
-  - matplotlib
+    - matplotlib
+    - numpy
+    - pandas
+    - gffpandas
+    - scipy

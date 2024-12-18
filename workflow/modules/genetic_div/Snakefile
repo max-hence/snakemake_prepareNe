@@ -1,0 +1,11 @@
+configfile: "config/config.yml"
+include: "rules/common.smk"
+include: "rules/get_pi.smk"
+
+wildcard_constraints:
+    chr = "|".join(get_chr_list(config["fai_path"])),
+    prefix = config["final_prefix"]
+
+rule all:
+    input:
+        #get_output()

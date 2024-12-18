@@ -47,6 +47,11 @@ def get_output():
         out.extend(expand("results/ne_inference/smcpp/full/{prefix}.SNPS.full.{chr}.smc.gz", prefix=final_prefix, chr=chromosomes))
         out.extend(expand("results/ne_inference/smcpp/snps_na/{prefix}.SNPS.NA.{chr}.smc.gz", prefix=final_prefix, chr=chromosomes))
 
+    if config["density"]:
+        out.extend(rules.density_all.input)
+    if config["recombination"]:
+        out.extend(rules.rec_all.input)
+    # if config["genetic_div"]: out.append(rules.genetic_div_all.input)
     return out
 
 

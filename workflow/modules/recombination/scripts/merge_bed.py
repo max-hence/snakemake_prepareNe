@@ -12,6 +12,8 @@ def merge_beds(bed_map:str, bed_call:str, output_bed:str):
     """
     bed_map_df = read_csv(bed_map,  header=None, delimiter="\t", index_col=None, names=["chrom", "chromStart", "chromEnd"])
     map_idx = 0
+    print("BAH : ",len(bed_map_df))
+    
     map_start = int(bed_map_df.iloc[map_idx]["chromStart"])
     map_end = int(bed_map_df.iloc[map_idx]["chromEnd"])
 

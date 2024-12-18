@@ -37,7 +37,7 @@ def correct_genotype(vcf_path:str, bed_path:str, correct_vcf_path:str):
 
     interval_idx = 0
     new_idx = True
-    bed_overtaken = False # True if SNPs is outside bed file (I don't get why it happens sometimes...)
+    bed_exceeded = False # True if SNPs is outside bed file (I don't get why it happens sometimes...)
 
     with open(correct_vcf_path, "w") as new_vcf:
         with open(vcf_path, "r") as vcf:
@@ -49,14 +49,14 @@ def correct_genotype(vcf_path:str, bed_path:str, correct_vcf_path:str):
                     continue
 
                 pos = row.strip().split('\t')[1] #locus
-                if not bed_overtaken:
+                if not bed_exceeded:
                     # find the good interval on the bed file associated with snp position
                     # I do that instead of searching for the intervall for each SNP to gain time
                     while int(pos) >= int(bed_table.iloc[interval_idx]["chromEnd"]):
                         interval_idx += 1
                         new_idx = True
                         if interval_idx == total_intervals: 
-                            bed_overtaken = True
+                            bed_exceeded = True
                             break
             
 
@@ -65,7 +65,7 @@ def correct_genotype(vcf_path:str, bed_path:str, correct_vcf_path:str):
                     print(f"{interval_idx} rows", flush=True)
                     new_idx = False
                 
-                if not bed_overtaken:
+                if not bed_exceeded:
                 # Mark all genotype as NA if SNP outside bed file
                     missing_samples = find_missing_samples(bed_table.iloc[interval_idx], all_samples) # get not called samples
 

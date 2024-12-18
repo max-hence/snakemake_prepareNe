@@ -37,6 +37,8 @@ rule sfs_projection_na:
             preview = "results/sfs/snps_na/{prefix}.SNPS.NA.preview.{chr}.txt"
         conda:
             "../envs/easySFS.yml"
+        log:
+            "logs/na/{prefix}.{chr}"
         shell:
             """
                 {input.easySFS} -i {input.vcf_na} -p {input.pop_path} \

@@ -25,6 +25,8 @@ rule sfs_small:
         final_sfs = "results/sfs/snps/small/{prefix}.small.{chr}.sfs"
     conda:
         "../envs/easySFS.yml"
+    log:
+        "logs/{prefix}.{chr}.log"
     shell:
         """
             sampling_size=10
@@ -56,6 +58,8 @@ rule sfs_strict:
         final_sfs = "results/sfs/snps/strict/{prefix}.strict.{chr}.sfs"
     conda:
         "../envs/easySFS.yml"
+    log:
+        "logs/{prefix}.{chr}.log"
     shell:
         """
             sampling_size=$(( $(wc -l < {input.pop_path}) * 2 ))
@@ -88,6 +92,8 @@ rule sfs_max_ml:
         final_sfs = "results/sfs/snps/{sfs_params_method}/{prefix}.{sfs_params_method}.{chr}.sfs"
     conda:
         "../envs/easySFS.yml"
+    log:
+        "logs/{prefix}.{sfs_params_method}.{chr}.log"
     shell:
         """
             sampling_size=$(( $(tail -1 {input.best_sample} | cut -f1 )))
@@ -115,6 +121,8 @@ rule plot_sfs:
         sfs_plot = "results/sfs/snps/{subsample}/{prefix}.{subsample}.{chr}.png"
     conda:
         "../envs/vcf_processing.yml"
+    log:
+        "logs/{prefix}.{subsample}.{chr}.log"
     shell:
         """
             python3 {input.script} -i {input.sfs} -o {output.sfs_plot}
@@ -131,6 +139,8 @@ rule prepare_strway_plot:
         stairway_plot_dir = config["stairway_plot_dir"],
     output:
         blueprint = "results/ne_inference/strway_plt/{subsample}/{prefix}.SNPS.{subsample}.{chr}.blueprint"
+    log:
+        "logs/{prefix}.{subsample}.{chr}.log"
     shell:
         """
             n_seq=$(( $(wc -w < {input.sfs}) * 2))
@@ -178,6 +188,8 @@ rule sfs_na:
         final_sfs = "results/sfs/snps_na/{prefix}.SNPS.NA.{chr}.sfs"
     conda:
         "../envs/easySFS.yml"
+    log:
+        "logs/{prefix}.{chr}.log"
     shell:
         """
             sampling_size=$(( $(tail -1 {input.best_sample} | cut -f1 )))
@@ -205,6 +217,8 @@ rule plot_sfs_na:
         sfs_plot = "results/sfs/snps_na/{prefix}.{chr}.png"
     conda:
         "../envs/vcf_processing.yml"
+    log:
+        "logs/{prefix}.{chr}.log"
     shell:
         """
             python3 {input.script} -i {input.sfs} -o {output.sfs_plot}
@@ -217,6 +231,8 @@ rule prepare_strway_plot_na:
         stairway_plot_dir = config["stairway_plot_dir"]
     output:
         blueprint = "results/ne_inference/strway_plt/snps_na/{prefix}.SNPS.NA.{chr}.blueprint"
+    log:
+        "logs/{prefix}.{chr}.log"
     shell:
         """
         n_seq=$(( $(wc -w < {input.sfs}) * 2))

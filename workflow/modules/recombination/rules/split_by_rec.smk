@@ -12,18 +12,18 @@ rule split_recmap:
         awk -v k={wildcards.chr} '$2 == k' {input.recmap} > {output.recmap_by_chrom}
         """
 
-rule exclude_regions:
-    "Creates bed file to remove regions upper or lower a given recombination threshold"
+rule split_by_rec:
+    "Split recombination map by quantiles of rec rate"
 
     input:
         recmap = "results/map/{prefix}.{chr}.rec",
         script = workflow.source_path("../scripts/map2bed.py")
     output:
-        bed_1 = "results/bed/rec/{prefix}.rec1.{chr}.bed", # lower than 33%
-        bed_2 = "results/bed/rec/{prefix}.rec2.{chr}.bed", # between 33 and 66%
-        bed_3 = "results/bed/rec/{prefix}.rec3.{chr}.bed", # higher than 66%
+        bed_1 = "results/rec/bed/{prefix}.rec1.{chr}.bed", # lower than 33%
+        bed_2 = "results/rec/bed/{prefix}.rec2.{chr}.bed", # between 33 and 66%
+        bed_3 = "results/rec/bed/{prefix}.rec3.{chr}.bed", # higher than 66%
     conda:
-        "../envs/vcf_processing.yml"
+        "../envs/recombination.yml"
     shell:
         """
         python3 {input.script} -i {input.recmap} -l 0 -u 33 -o {output.bed_1}
@@ -33,13 +33,13 @@ rule exclude_regions:
 
 rule resize_chr:
         input:
-            bed = "results/bed/rec/{prefix}.{rec}.{chr}.bed",
+            bed = "results/rec/bed/{prefix}.{rec}.{chr}.bed",
             fai = "results/stats/snps_na/{prefix}.SNPS.NA.{chr}.fai",
             script = workflow.source_path("../scripts/rescale_genlen.py")
         output:
-            fai = "results/stats/rec/{prefix}.{rec}.{chr}.fai",
+            fai = "results/rec/stats/{prefix}.{rec}.{chr}.fai",
         conda:
-            "../envs/vcf_processing.yml"
+            "../envs/recombination.yml"
         shell:
             """
             python3 {input.script} -i {input.bed} -f {input.fai} -o {output.fai} --method "bed"
@@ -51,42 +51,44 @@ rule split_vcf:
     input:
         vcf = "results/vcf/snps_na/{prefix}.SNPS.NA.{chr}.vcf.gz", # vcf corrected by callability
         vcf_idx = "results/vcf/snps_na/{prefix}.SNPS.NA.{chr}.vcf.gz.tbi",
-        bed = "results/bed/rec/{prefix}.{rec}.{chr}.bed"
+        bed = "results/rec/bed/{prefix}.{rec}.{chr}.bed"
     output:
-        splitted_vcf = "results/rec/vcf/{prefix}.{rec}.{chr}.vcf",
+        splitted_vcf = temp("results/rec/vcf/{prefix}.{rec}.{chr}.vcf"),
         splitted_vcf_gz = "results/rec/vcf/{prefix}.{rec}.{chr}.vcf.gz",
         splitted_vcf_idx = "results/rec/vcf/{prefix}.{rec}.{chr}.vcf.gz.tbi",
         stats = "results/rec/stats/{prefix}.{rec}.{chr}.stats"
     conda:
-        "../envs/vcf_processing.yml"
+        "../envs/recombination.yml"
+    log:
+        "logs/rec/{prefix}.{rec}.{chr}.log"
     shell:
         """
         bcftools view -R {input.bed} {input.vcf} -o {output.splitted_vcf}
         bgzip -c {output.splitted_vcf} > {output.splitted_vcf_gz}
         tabix -p vcf {output.splitted_vcf_gz}
 
-        bcftools index -s {output.splitted_vcf} > {output.stats}
+        bcftools index -s {output.splitted_vcf_gz} > {output.stats}
         """
 
 rule rdm_sample_vcf:
     " Randomly sampling SNPs "
-    input: 
+    input:
         vcf = "results/rec/vcf/{prefix}.{rec}.{chr}.vcf.gz",
         vcf_idx = "results/rec/vcf/{prefix}.{rec}.{chr}.vcf.gz.tbi",
         fai = "results/rec/stats/{prefix}.{rec}.{chr}.fai",
-        stats = temp("results/rec/stats/{prefix}.{rec}.{chr}.stats"),
+        snps_stats = "results/rec/stats/{prefix}.{rec}.{chr}.stats",
         script = workflow.source_path("../scripts/rescale_genlen.py")
     output:
         unsorted_vcf = temp("results/rec/vcf/{prefix}.{rec}.rdmSNP.unsorted.{chr}.vcf.gz"),
         rdm_vcf = temp("results/rec/vcf/{prefix}.{rec}.rdmSNP.{chr}.vcf"),
         rdm_vcf_gz = "results/rec/vcf/{prefix}.{rec}.rdmSNP.{chr}.vcf.gz",
         rdm_vcf_idx = "results/rec/vcf/{prefix}.{rec}.rdmSNP.{chr}.vcf.gz.tbi",
-        rdm_stats = temp("results/rec/stats/{prefix}.{rec}.rdmSNP.{chr}.stats")
+        rdm_stats = "results/rec/stats/{prefix}.{rec}.rdmSNP.{chr}.stats",
         rdm_fai = "results/rec/stats/{prefix}.{rec}.rdmSNP.{chr}.fai",
     conda:
-        "../envs/vcf_processing.yml"
-    params: 
-      nsnps=100000
+        "../envs/recombination.yml"
+    params:
+      nsnps=250000
     shell:
         """
         bcftools view --header-only {input.vcf} > {output.unsorted_vcf}
@@ -115,7 +117,7 @@ rule sfs_projection:
     output:
         preview = "results/rec/sfs/{prefix}.{rec}.preview.{chr}.txt",
     conda:
-        "../envs/easySFS.yml"
+        "../envs/recombination.yml"
     shell:
         """
         python3 {input.easySFS} -i {input.subsampled_vcf} -p {input.pop_path} \
@@ -132,7 +134,7 @@ rule get_best_params:
     output:
         best_sample = "results/rec/sfs/{prefix}.{rec}.best_sample.txt"
     conda:
-        "../envs/vcf_processing.yml"
+        "../envs/recombination.yml"
     shell:
         """
         python3 {input.get_sfs_param} -i {input.previews} -m "ml" -o {output.best_sample}
@@ -149,12 +151,13 @@ rule intersect_beds:
     output:
         intersect_bed = "results/rec/bed/{prefix}.{rec}.intersect.{chr}.bed"
     conda:
-        "../envs/vcf_processing.yml"
+        "../envs/recombination.yml"
+    log:
+        "logs/rec/{prefix}.{rec}.{chr}.log"
     shell:
         """
         python3 {input.script} -i {input.bed} -b {input.callable_bed} -o {output.intersect_bed}
         """
-
 
 rule trim_bed:
     """
@@ -168,9 +171,9 @@ rule trim_bed:
         script = workflow.source_path("../scripts/rescale_genlen.py")
     output:
         trimmed_bed = "results/rec/bed/{prefix}.{rec}.{chr}.callable.bed",
-        resized_fai = "results/rec/stats/{prefix}.{rec}.rdmSNP.{chr}.fai"
+        resized_fai = "results/rec/stats/{prefix}.{rec}.rdmSNP.resized.{chr}.fai"
     conda:
-        "../envs/vcf_processing.yml"
+        "../envs/recombination.yml"
     shell:
         """
         sampling_size=$(( $(tail -1 {input.best_sample} | cut -f1 ) / 2 ))

@@ -16,6 +16,7 @@ def map2bed(recMap_path:str, output_path:str, low_range:int=0, up_range:int=100)
     """
 
     rec_map = read_csv(recMap_path, delimiter = " ", header = 0, names = ["set", "map", "start", "end", "recRate", "upperRecRate", "lowerRecRate"])
+    if len(rec_map) == 0: raise ValueError("No recombination map for this chromosome")
     quantiles = [int(q)/100 for q in [low_range, up_range]]
 
     # defines treshold by chromosome

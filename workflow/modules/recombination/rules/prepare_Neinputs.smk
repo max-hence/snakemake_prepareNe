@@ -13,16 +13,16 @@ rule sfs:
         Run easySFS with best param values
     """
     input:
-        vcf = "results/vcf/rec/{prefix}.{rec}.rdmSNP.{chr}.vcf",
+        vcf = "results/rec/vcf/{prefix}.{rec}.rdmSNP.{chr}.vcf",
         pop_path = "results/{prefix}.pop",
-        best_sample = "results/sfs/rec/{prefix}.{rec}.best_sample.txt",
-        fai = "results/stats/rec/{prefix}.{rec}.rdmSNP.{chr}.fai", # for chr length
+        best_sample = "results/rec/sfs/{prefix}.{rec}.best_sample.txt",
+        fai = "results/rec/stats/{prefix}.{rec}.rdmSNP.resized.{chr}.fai", # for chr length
         easySFS = config["easySFS_path"]
     output:
-        sfs_dir = temp(directory("results/sfs/rec/{rec}/{prefix}.{rec}.{chr}")),
-        final_sfs = "results/sfs/rec/{rec}/{prefix}.{rec}.{chr}.sfs"
+        sfs_dir = temp(directory("results/rec/sfs/{rec}/{prefix}.{rec}.{chr}")),
+        final_sfs = "results/rec/sfs/{rec}/{prefix}.{rec}.{chr}.sfs"
     conda:
-        "../envs/easySFS.yml"
+        "../envs/recombination.yml"
     shell:
         """
             sampling_size=$(( $(tail -1 {input.best_sample} | cut -f1 )))
@@ -46,12 +46,12 @@ rule plot_sfs:
         Plot SFS
     """
     input:
-        sfs = "results/sfs/rec/{rec}/{prefix}.{rec}.{chr}.sfs",
+        sfs = "results/rec/sfs/{rec}/{prefix}.{rec}.{chr}.sfs",
         script =  workflow.source_path("../scripts/plot_sfs.py")
     output:
-        sfs_plot = "results/sfs/rec/{rec}/{prefix}.{rec}.{chr}.png"
+        sfs_plot = "results/rec/sfs/{rec}/{prefix}.{rec}.{chr}.png"
     conda:
-        "../envs/vcf_processing.yml"
+        "../envs/recombination.yml"
     shell:
         """
             python3 {input.script} -i {input.sfs} -o {output.sfs_plot}
@@ -62,11 +62,11 @@ rule prepare_strway_plot:
         Writes inputs for StairwayPlot
     """
     input:
-        sfs = "results/sfs/rec/{rec}/{prefix}.{rec}.{chr}.sfs",
-        fai = "results/stats/rec/{prefix}.{rec}.rdmSNP.{chr}.fai", # for chr length
+        sfs = "results/rec/sfs/{rec}/{prefix}.{rec}.{chr}.sfs",
+        fai = "results/rec/stats/{prefix}.{rec}.rdmSNP.resized.{chr}.fai", # for chr length
         stairway_plot_dir = config["stairway_plot_dir"],
     output:
-        blueprint = "results/ne_inference/strway_plt/rec/{rec}/{prefix}.{rec}.{chr}.blueprint"
+        blueprint = "results/rec/ne_inference/strway_plt/{rec}/{prefix}.{rec}.{chr}.blueprint"
     shell:
         """
             n_seq=$(( $(wc -w < {input.sfs}) * 2))
@@ -106,15 +106,15 @@ rule flip_bed:
         Reverse bed file to show positions that will be excluded for SMC++ input
     """
     input:
-        bed = "results/bed/rec/{prefix}.{rec}.{chr}.callable.bed",
+        bed = "results/rec/bed/{prefix}.{rec}.{chr}.callable.bed",
         raw_bed = "results/bed/raw/{prefix}.raw.{chr}.callable.bed",
         script = workflow.source_path("../scripts/reverse_bed.py")
     output:
-        mask = temp("results/bed/rec/{prefix}.{rec}.callable.flipped.{chr}.bed"),
-        mask_gz = "results/bed/rec/{prefix}.{rec}.callable.flipped.{chr}.bed.gz",
-        mask_idx = "results/bed/rec/{prefix}.{rec}.callable.flipped.{chr}.bed.gz.tbi"
+        mask = temp("results/rec/bed/{prefix}.{rec}.callable.flipped.{chr}.bed"),
+        mask_gz = "results/rec/bed/{prefix}.{rec}.callable.flipped.{chr}.bed.gz",
+        mask_idx = "results/rec/bed/{prefix}.{rec}.callable.flipped.{chr}.bed.gz.tbi"
     conda:
-        "../envs/vcf_processing.yml"
+        "../envs/recombination.yml"
     shell:
         """
         last_pos=$(tail -1 {input.raw_bed} | cut -f3)
@@ -129,17 +129,17 @@ rule prepare_smcpp:
         Prepare .smc file per chr with the callability.bed as mask
     """
     input:
-        vcf = "results/vcf/rec/{prefix}.{rec}.rdmSNP.{chr}.vcf.gz",
-        vcf_idx = "results/vcf/rec/{prefix}.{rec}.rdmSNP.{chr}.vcf.gz.tbi",
+        vcf = "results/rec/vcf/{prefix}.{rec}.rdmSNP.{chr}.vcf.gz",
+        vcf_idx = "results/rec/vcf/{prefix}.{rec}.rdmSNP.{chr}.vcf.gz.tbi",
         pop_path = "results/{prefix}.pop",
-        fai = "results/stats/rec/{prefix}.{rec}.rdmSNP.{chr}.fai",
-        mask = "results/bed/rec/{prefix}.{rec}.callable.flipped.{chr}.bed.gz",
-        mask_idx = "results/bed/rec/{prefix}.{rec}.callable.flipped.{chr}.bed.gz.tbi",
+        fai = "results/rec/stats/{prefix}.{rec}.rdmSNP.resized.{chr}.fai",
+        mask = "results/rec/bed/{prefix}.{rec}.callable.flipped.{chr}.bed.gz",
+        mask_idx = "results/rec/bed/{prefix}.{rec}.callable.flipped.{chr}.bed.gz.tbi",
         smcpp = config["smcpp"]
     output:
-        smcpp_input = "results/ne_inference/smcpp/rec/{rec}/{prefix}.{rec}.{chr}.smc.gz"
+        smcpp_input = "results/rec/ne_inference/smcpp/{rec}/{prefix}.{rec}.{chr}.smc.gz"
     conda:
-        "../envs/vcf_processing.yml"
+        "../envs/recombination.yml"
     shell:
         """
         length=$(cut -f2 {input.fai})

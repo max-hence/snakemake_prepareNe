@@ -5,8 +5,6 @@
 #SBATCH -p long
 #SBATCH --time=2-00
 #SBATCH --mem=10G
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4
 
 . /shared/projects/plant_lewontin_paradox/paths.sh
 
