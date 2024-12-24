@@ -22,6 +22,11 @@ def cut_chr_by_geneD(geneD_df):
 
 
 def plot_geneD(geneD_path:str, thresholds:list, plot_path:str):
+    """
+        geneD_path:
+        thresholds:
+        plot_path:
+    """
     geneD_df = read_csv(geneD_path, delimiter = "\t", header = None, names = ["seq_id", "start", "end", "density"], index_col=None)
     
     # defines tresholds by chromosome

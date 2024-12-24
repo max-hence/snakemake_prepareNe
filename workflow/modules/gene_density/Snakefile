@@ -6,16 +6,18 @@ include: "rules/prepare_Neinputs.smk"
 wildcard_constraints:
     chr = "|".join(get_chr_list(config["fai_path"])),
     prefix = config["final_prefix"],
-    density = "|".join(["lowD","highD"])
+    density = "|".join(["lowD", "midD", "highD"])
 
 FINAL_PREFIX = config["final_prefix"]
 CHROMOSOMES: list = get_chr_list(config["fai_path"])
-DENSITY_CAT: list = ["lowD","highD"]
+DENSITY_CAT: list = ["lowD", "midD", "highD"]
 
 rule all:
     input:
         # Plot gene density
         expand("results/geneD/stats/{prefix}.{chr}.geneD.png", prefix=FINAL_PREFIX, chr=CHROMOSOMES),
+        # Plot sfs
+        # expand("results/geneD/sfs/{density}/{prefix}.{density}.{chr}.png", prefix=FINAL_PREFIX, density=DENSITY_CAT, chr=CHROMOSOMES),
         # Stairway Plot inputs
         expand("results/geneD/ne_inference/strway_plt/{density}/{prefix}.{density}.{chr}.blueprint", prefix=FINAL_PREFIX, density=DENSITY_CAT, chr=CHROMOSOMES),
         # SMC++ inputs

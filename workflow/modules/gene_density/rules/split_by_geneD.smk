@@ -6,7 +6,7 @@ rule split_gff:
     input:
         gff = config["annotation"]
     output:
-        gff_by_chr = "results/geneD/{prefix}.{chr}.gff"
+        gff_by_chr = temp("results/geneD/{prefix}.{chr}.gff")
     shell:
         """
         awk -v chr={wildcards.chr} '$1 == chr' {input.gff} > {output.gff_by_chr}
@@ -35,17 +35,20 @@ rule geneD_to_bed:
     input:
         density = "results/geneD/{prefix}.{chr}.geneD",
         script = workflow.source_path("../scripts/geneD_to_bed.py")
-    output:
+    output:nter
         low_bed = "results/geneD/{prefix}.lowD.{chr}.bed",
+        mid_bed = "results/geneD/{prefix}.midD.{chr}.bed",
         high_bed = "results/geneD/{prefix}.highD.{chr}.bed"
     conda:
         "../envs/gene_density.yml"
     shell:
         """
-        python3 {input.script} -i {input.density} -o {output.low_bed} -l 0 -u 30
-        python3 {input.script} -i {input.density} -o {output.high_bed} -l 30 -u 100
+        python3 {input.script} -i {input.density} -o {output.low_bed} -l 0 -u 33
+        python3 {input.script} -i {input.density} -o {output.high_bed} -l 33 -u 66
+        python3 {input.script} -i {input.density} -o {output.high_bed} -l 66 -u 100
         """
 
+# Faire ça en dehors c'est trop chiant les plots
 rule plot_geneD:
     input:
         density = "results/geneD/{prefix}.{chr}.geneD",
@@ -56,7 +59,7 @@ rule plot_geneD:
         "../envs/gene_density.yml"
     shell:
         """
-        python3 {input.script} -i {input.density} -t 30 -o {output.plot}
+        python3 {input.script} -i {input.density} -t 33 -o {output.plot}
         """
 
 
@@ -94,6 +97,7 @@ rule split_vcf_by_geneD:
         bcftools index -s {output.splitted_vcf} > {output.stats}
         """
 
+# On passe ça
 rule rdm_sample_vcf:
     " Random SNPs sampling "
     input: 
@@ -103,8 +107,8 @@ rule rdm_sample_vcf:
         stats = "results/geneD/stats/{prefix}.{density}.{chr}.stats",
         script = workflow.source_path("../scripts/rescale_genlen.py")
     output:
-        unsorted_vcf = "results/geneD/vcf/{prefix}.{density}.rdmSNP.unsorted.{chr}.vcf.gz",
-        rdm_vcf = "results/geneD/vcf/{prefix}.{density}.rdmSNP.{chr}.vcf",
+        unsorted_vcf = temp("results/geneD/vcf/{prefix}.{density}.rdmSNP.unsorted.{chr}.vcf.gz"),
+        rdm_vcf = temp("results/geneD/vcf/{prefix}.{density}.rdmSNP.{chr}.vcf"),
         rdm_vcf_gz = "results/geneD/vcf/{prefix}.{density}.rdmSNP.{chr}.vcf.gz",
         rdm_vcf_idx = "results/geneD/vcf/{prefix}.{density}.rdmSNP.{chr}.vcf.gz.tbi",
         rdm_stats = "results/geneD/stats/{prefix}.{density}.rdmSNP.{chr}.stats",

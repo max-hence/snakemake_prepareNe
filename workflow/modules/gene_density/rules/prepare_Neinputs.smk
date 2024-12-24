@@ -9,11 +9,11 @@ rule sfs_projection:
         Run easySFS to do SFS projection and find the best sample/snps ratio
     """
         input:
-            vcf = "results/geneD/vcf/{prefix}.{density}.rdmSNP.{chr}.vcf",
+            vcf = "results/geneD/vcf/{prefix}.{density}.{chr}.vcf",
             pop_path = "results/{prefix}.pop",
             easySFS = config["easySFS_path"],
         output:
-            preview = "results/geneD/sfs/{prefix}.{density}.rdmSNP.preview.{chr}.txt",
+            preview = "results/geneD/sfs/{prefix}.{density}.preview.{chr}.txt",
         conda:
             "../envs/gene_density.yml"
         shell:
@@ -32,16 +32,13 @@ rule get_best_params:
         previews = get_previews,
         get_sfs_param = workflow.source_path("../scripts/get_sfs_param.py")
     output:
-        best_sample = "results/geneD/sfs/{prefix}.{density}.best_params.txt",
+        best_sample = "results/geneD/sfs/{prefix}.best_params.txt",
     conda:
         "../envs/gene_density.yml"
     shell:
         """
-        echo {input.previews}
-        previews=$(echo {input.previews} | tr ' ' ',')
-        python3 {input.get_sfs_param} -i $previews -m "ml" -o {output.best_sample}
+        python3 {input.get_sfs_param} -i {input.previews} -m "ml" -o {output.best_sample}
         """
-
 
 rule trim_bed:
     """
@@ -49,13 +46,13 @@ rule trim_bed:
         Resize chr length based on trimmed bed
     """
     input:
-        best_sample = "results/geneD/sfs/{prefix}.{density}.best_params.txt",
-        fai = "results/geneD/stats/{prefix}.{density}.rdmSNP.{chr}.fai",
+        best_sample = "results/geneD/sfs/{prefix}.best_params.txt",
+        fai = "results/geneD/stats/{prefix}.{density}.{chr}.fai",
         raw_bed = "results/bed/raw/{prefix}.raw.{chr}.callable.bed",
         script = workflow.source_path("../scripts/rescale_genlen.py")
     output:
         trimmed_bed = "results/geneD/bed/{prefix}.{density}.{chr}.callable.bed",
-        rescaled_fai = "results/geneD/stats/{prefix}.{density}.rdmSNP.trimmed.{chr}.fai"
+        rescaled_fai = "results/geneD/stats/{prefix}.{density}.trimmed.{chr}.fai"
     conda:
         "../envs/gene_density.yml"
     shell:
@@ -77,10 +74,10 @@ rule sfs:
         Run easySFS with previously estimated sample size
     """
     input:
-        vcf = "results/geneD/vcf/{prefix}.{density}.rdmSNP.{chr}.vcf",
+        vcf = "results/geneD/vcf/{prefix}.{density}.{chr}.vcf",
         pop_path = "results/{prefix}.pop",
-        fai = "results/geneD/stats/{prefix}.{density}.rdmSNP.trimmed.{chr}.fai", # for chr length
-        best_sample = "results/geneD/sfs/{prefix}.{density}.best_params.txt",
+        fai = "results/geneD/stats/{prefix}.{density}.trimmed.{chr}.fai", # for chr length
+        best_sample = "results/geneD/sfs/{prefix}.best_params.txt",
         easySFS = config["easySFS_path"]
     output:
         sfs_dir = temp(directory("results/geneD/sfs/{density}/{prefix}.{density}.{chr}")),
@@ -111,7 +108,7 @@ rule plot_sfs:
         Plot SFS 
     """
     input:
-        sfs = "results/sfs/geneD/{density}/{prefix}.{density}.{chr}.sfs",
+        sfs = "results/geneD/sfs/{density}/{prefix}.{density}.{chr}.sfs",
         script = workflow.source_path("../scripts/plot_sfs.py")
     output:
         sfs_plot = "results/geneD/sfs/{density}/{prefix}.{density}.{chr}.png"
@@ -128,7 +125,7 @@ rule prepare_strway_plot:
     """
     input:
         sfs = "results/geneD/sfs/{density}/{prefix}.{density}.{chr}.sfs",
-        fai = "results/geneD/stats/{prefix}.{density}.rdmSNP.trimmed.{chr}.fai", # for chr length
+        fai = "results/geneD/stats/{prefix}.{density}.trimmed.{chr}.fai", # for chr length
         stairway_plot_dir = config["stairway_plot_dir"],
     output:
         blueprint = "results/geneD/ne_inference/strway_plt/{density}/{prefix}.{density}.{chr}.blueprint"
@@ -192,10 +189,10 @@ rule prepare_smcpp:
         Prepare .smc file per chr with the callability.bed as mask
     """
     input:
-        vcf = "results/geneD/vcf/{prefix}.{density}.rdmSNP.{chr}.vcf.gz",
-        vcf_idx = "results/geneD/vcf/{prefix}.{density}.rdmSNP.{chr}.vcf.gz.tbi",
+        vcf = "results/geneD/vcf/{prefix}.{density}.{chr}.vcf.gz",
+        vcf_idx = "results/geneD/vcf/{prefix}.{density}.{chr}.vcf.gz.tbi",
         pop_path = "results/{prefix}.pop",
-        fai = "results/geneD/stats/{prefix}.{density}.rdmSNP.{chr}.fai",
+        fai = "results/geneD/stats/{prefix}.{density}.{chr}.fai",
         mask = "results/geneD/bed/{prefix}.{density}.callable.flipped.{chr}.bed.gz",
         mask_idx = "results/geneD/bed/{prefix}.{density}.callable.flipped.{chr}.bed.gz.tbi",
         smcpp = config["smcpp"]

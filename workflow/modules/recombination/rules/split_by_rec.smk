@@ -6,7 +6,7 @@ rule split_recmap:
     input:
         recmap = config["recmap"]
     output:
-        recmap_by_chrom = "results/map/{prefix}.{chr}.rec"
+        recmap_by_chrom = temp("results/map/{prefix}.{chr}.rec")
     shell:
         """
         awk -v k={wildcards.chr} '$2 == k' {input.recmap} > {output.recmap_by_chrom}
@@ -32,6 +32,7 @@ rule split_by_rec:
         """
 
 rule resize_chr:
+    "Measure size of chr chunks"
         input:
             bed = "results/rec/bed/{prefix}.{rec}.{chr}.bed",
             fai = "results/stats/snps_na/{prefix}.SNPS.NA.{chr}.fai",
@@ -104,6 +105,7 @@ rule rdm_sample_vcf:
         python3 {input.script} -i {input.snps_stats} -r {output.rdm_stats} -f {input.fai} -o {output.rdm_fai} --method snp
         """
 
+
     ###################
     ### Subsampling ###
     ###################
@@ -111,7 +113,7 @@ rule rdm_sample_vcf:
 rule sfs_projection:
     "Run easySFS on the sub vcf"
     input:
-        subsampled_vcf = "results/rec/vcf/{prefix}.{rec}.rdmSNP.{chr}.vcf",
+        splitted_vcf = "results/rec/vcf/{prefix}.{rec}.{chr}.vcf",
         pop_path = "results/{prefix}.pop",
         easySFS = config["easySFS_path"],
     output:
@@ -120,19 +122,19 @@ rule sfs_projection:
         "../envs/recombination.yml"
     shell:
         """
-        python3 {input.easySFS} -i {input.subsampled_vcf} -p {input.pop_path} \
+        python3 {input.easySFS} -i {input.splitted_vcf} -p {input.pop_path} \
         --preview -v -a > {output.preview}
         """
 
 rule get_best_params:
     """
-        merge all results from easySFS run by chr
+        merge all results from easySFS run by chr- and by rec treatment and choose the best sampling size
     """
     input:
-        previews = get_previews("results/rec/sfs/{prefix}.{rec}.preview.{chr}.txt"),
+        previews = get_previews,
         get_sfs_param = workflow.source_path("../scripts/get_sfs_param.py")
     output:
-        best_sample = "results/rec/sfs/{prefix}.{rec}.best_sample.txt"
+        best_sample = "results/rec/sfs/{prefix}.best_sample.txt"
     conda:
         "../envs/recombination.yml"
     shell:
@@ -165,20 +167,20 @@ rule trim_bed:
         Resize chr length based on trimmed bed
     """
     input:
-        best_sample = "results/rec/sfs/{prefix}.{rec}.best_sample.txt",
-        rescaled_fai = "results/rec/stats/{prefix}.{rec}.rdmSNP.{chr}.fai",
+        best_sample = "results/rec/sfs/{prefix}.best_sample.txt",
+        rescaled_fai = "results/rec/stats/{prefix}.{rec}.{chr}.fai",
         intersect_bed = "results/rec/bed/{prefix}.{rec}.intersect.{chr}.bed",
         script = workflow.source_path("../scripts/rescale_genlen.py")
     output:
         trimmed_bed = "results/rec/bed/{prefix}.{rec}.{chr}.callable.bed",
-        resized_fai = "results/rec/stats/{prefix}.{rec}.rdmSNP.resized.{chr}.fai"
+        resized_fai = "results/rec/stats/{prefix}.{rec}.resized.{chr}.fai"
     conda:
         "../envs/recombination.yml"
     shell:
         """
         sampling_size=$(( $(tail -1 {input.best_sample} | cut -f1 ) / 2 ))
         awk -v n=$sampling_size '$4 >= n' {input.intersect_bed} > {output.trimmed_bed}
-        
+
         python3 {input.script} -i {output.trimmed_bed} -f {input.rescaled_fai} \
         -o {output.resized_fai} --method bed
         """

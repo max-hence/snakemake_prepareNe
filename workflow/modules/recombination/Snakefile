@@ -15,7 +15,7 @@ REC_QUANTILES: list = ["rec1","rec2","rec3"]
 rule all:
     input:
         # Plot sfs
-        expand("results/rec/sfs/{rec}/{prefix}.{rec}.{chr}.png", prefix=FINAL_PREFIX, rec=REC_QUANTILES, chr=CHROMOSOMES),
+        # expand("results/rec/sfs/{rec}/{prefix}.{rec}.{chr}.png", prefix=FINAL_PREFIX, rec=REC_QUANTILES, chr=CHROMOSOMES),
         # Stairway Plot inputs
         expand("results/rec/ne_inference/smcpp/{rec}/{prefix}.{rec}.{chr}.smc.gz", prefix=FINAL_PREFIX, rec=REC_QUANTILES, chr=CHROMOSOMES),
         # SMC++ inputs

@@ -1,14 +1,13 @@
-- Changer le format du fai, faire juste un tableau avec les chr et la taille puis faire une fonction qui actualise la taille
-    Sans faire un fichier pour chaque chr c'est chiant. En fait c'est pas possible si les jobs sont lancés en parallele. Du coup plein de fichier 
-    --> Merge à la fin !
-
-- Module à part pour la recombinaison, comme gene density
-    - Passer à deux catégories de recombination
-
-- Mettre les .vcf et autre en temp()
-
 - Intégrer le module rdm dans les autres modules
 
 - Trouver une solution pour pas avoir à dupliquer tous les scripts
 
 - Inclure la conversion marey map into .rec inside pipeline
+
+- Travailler avec les bed.gz
+
+- Pourquoi pas merge les .fai à la fin
+
+- Pas resize quand on enlève les variants non SNPs
+- Pas sous echantillonner pour réequillibrer le nombre de SNPs par cat
+- Faire 3 catégories de gene density

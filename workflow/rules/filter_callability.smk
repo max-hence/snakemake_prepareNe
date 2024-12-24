@@ -13,7 +13,7 @@ rule correct_genotype:
         splitted_bed = "results/bed/raw/{prefix}.raw.{chr}.callable.bed",
         script = workflow.source_path("../scripts/correct_genotype.py")
     output:
-        corrected_vcf = "results/vcf/snps_na/{prefix}.SNPS.NA.{chr}.vcf",
+        corrected_vcf = temp("results/vcf/snps_na/{prefix}.SNPS.NA.{chr}.vcf"),
         corrected_vcf_gz = "results/vcf/snps_na/{prefix}.SNPS.NA.{chr}.vcf.gz",
         corrected_vcf_idx = "results/vcf/snps_na/{prefix}.SNPS.NA.{chr}.vcf.gz.tbi"
     conda:

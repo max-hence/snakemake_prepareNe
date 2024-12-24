@@ -35,8 +35,8 @@ def get_output():
 
     if not config["stop"]:      
         # SFS plots
-        out.extend(expand("results/sfs/snps/{subsample}/{prefix}.{subsample}.{chr}.png", prefix=final_prefix, chr=chromosomes, subsample=sampling_method))
-        out.extend(expand("results/sfs/snps_na/{prefix}.{chr}.png", prefix=final_prefix, chr=chromosomes))
+        # out.extend(expand("results/sfs/snps/{subsample}/{prefix}.{subsample}.{chr}.png", prefix=final_prefix, chr=chromosomes, subsample=sampling_method))
+        # out.extend(expand("results/sfs/snps_na/{prefix}.{chr}.png", prefix=final_prefix, chr=chromosomes))
         
         # Stairway Plot inputs
         out.extend(expand("results/ne_inference/strway_plt/{subsample}/{prefix}.SNPS.{subsample}.{chr}.blueprint", prefix=final_prefix, chr=chromosomes, subsample=sampling_method))

@@ -13,10 +13,10 @@ rule sfs:
         Run easySFS with best param values
     """
     input:
-        vcf = "results/rec/vcf/{prefix}.{rec}.rdmSNP.{chr}.vcf",
+        vcf = "results/rec/vcf/{prefix}.{rec}.{chr}.vcf",
         pop_path = "results/{prefix}.pop",
-        best_sample = "results/rec/sfs/{prefix}.{rec}.best_sample.txt",
-        fai = "results/rec/stats/{prefix}.{rec}.rdmSNP.resized.{chr}.fai", # for chr length
+        best_sample = "results/rec/sfs/{prefix}.best_sample.txt",
+        fai = "results/rec/stats/{prefix}.{rec}.resized.{chr}.fai", # for chr length
         easySFS = config["easySFS_path"]
     output:
         sfs_dir = temp(directory("results/rec/sfs/{rec}/{prefix}.{rec}.{chr}")),
@@ -63,7 +63,7 @@ rule prepare_strway_plot:
     """
     input:
         sfs = "results/rec/sfs/{rec}/{prefix}.{rec}.{chr}.sfs",
-        fai = "results/rec/stats/{prefix}.{rec}.rdmSNP.resized.{chr}.fai", # for chr length
+        fai = "results/rec/stats/{prefix}.{rec}.resized.{chr}.fai", # for chr length
         stairway_plot_dir = config["stairway_plot_dir"],
     output:
         blueprint = "results/rec/ne_inference/strway_plt/{rec}/{prefix}.{rec}.{chr}.blueprint"
@@ -129,10 +129,10 @@ rule prepare_smcpp:
         Prepare .smc file per chr with the callability.bed as mask
     """
     input:
-        vcf = "results/rec/vcf/{prefix}.{rec}.rdmSNP.{chr}.vcf.gz",
-        vcf_idx = "results/rec/vcf/{prefix}.{rec}.rdmSNP.{chr}.vcf.gz.tbi",
+        vcf = "results/rec/vcf/{prefix}.{rec}.{chr}.vcf.gz",
+        vcf_idx = "results/rec/vcf/{prefix}.{rec}.{chr}.vcf.gz.tbi",
         pop_path = "results/{prefix}.pop",
-        fai = "results/rec/stats/{prefix}.{rec}.rdmSNP.resized.{chr}.fai",
+        fai = "results/rec/stats/{prefix}.{rec}.resized.{chr}.fai",
         mask = "results/rec/bed/{prefix}.{rec}.callable.flipped.{chr}.bed.gz",
         mask_idx = "results/rec/bed/{prefix}.{rec}.callable.flipped.{chr}.bed.gz.tbi",
         smcpp = config["smcpp"]

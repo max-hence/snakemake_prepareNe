@@ -27,8 +27,8 @@ rule split_by_chr:
     input:
         vcf = config["vcf_path"]
     output:
-        splitted_vcf = "results/vcf/raw/{prefix}.raw.{chr}.vcf.gz",
-        splitted_vcf_idx = "results/vcf/raw/{prefix}.raw.{chr}.vcf.gz.tbi",
+        splitted_vcf = temp("results/vcf/raw/{prefix}.raw.{chr}.vcf.gz"),
+        splitted_vcf_idx = temp("results/vcf/raw/{prefix}.raw.{chr}.vcf.gz.tbi"),
         stats = "results/stats/raw/{prefix}.raw.{chr}.stats"
     conda:
         "../envs/vcf_processing.yml"
@@ -45,7 +45,7 @@ rule split_bed:
     input:
         bed = config["bed_path"]
     output:
-        splitted_bed = "results/bed/raw/{prefix}.raw.{chr}.callable.bed"
+        splitted_bed = temp("results/bed/raw/{prefix}.raw.{chr}.callable.bed")
     log:
         "logs/{prefix}.{chr}.log"
     shell:
@@ -65,7 +65,7 @@ rule filter_snps:
         splitted_vcf = "results/vcf/raw/{prefix}.raw.{chr}.vcf.gz",
         splitted_vcf_idx = "results/vcf/raw/{prefix}.raw.{chr}.vcf.gz.tbi"
     output:
-        vcf_snps = "results/vcf/snps/{prefix}.SNPS.{chr}.vcf",
+        vcf_snps = temp("results/vcf/snps/{prefix}.SNPS.{chr}.vcf"),
         vcf_snps_gz = "results/vcf/snps/{prefix}.SNPS.{chr}.vcf.gz",
         vcf_snps_idx = "results/vcf/snps/{prefix}.SNPS.{chr}.vcf.gz.tbi",
         snps_stats = "results/stats/snps/full/{prefix}.SNPS.{chr}.stats"
@@ -80,28 +80,6 @@ rule filter_snps:
         tabix -p vcf {output.vcf_snps_gz}
         bcftools index -s {output.vcf_snps_gz} > {output.snps_stats}
         """
-
-
-rule rescale_chr:
-    """
-    Rescale chr length based on lost variants when filtering for bi allelic snps
-    """
-    input:
-        fai = config["fai_path"],
-        raw_stats = "results/stats/raw/{prefix}.raw.{chr}.stats",
-        snps_stats = "results/stats/snps/full/{prefix}.SNPS.{chr}.stats",
-        script = workflow.source_path("../scripts/rescale_genlen.py")
-    output:
-        rescaled_fai = "results/stats/snps/full/{prefix}.SNPS.full.{chr}.fai"
-    conda:
-        "../envs/vcf_processing.yml"
-    log:
-        "logs/{prefix}.{chr}.log"
-    shell:
-        """
-            python3 {input.script} -i {input.snps_stats} -r {input.raw_stats} -f {input.fai} -o {output.rescaled_fai} --method snp
-        """
-
 
         ######################
         ### VCF resampling ###
@@ -220,7 +198,7 @@ rule resize_chr:
     """
     input:
         trimmed_bed = "results/bed/snps/{subsample}/{prefix}.SNPS.{subsample}.{chr}.callable.bed",
-        fai = "results/stats/snps/full/{prefix}.SNPS.full.{chr}.fai",
+        fai = config["fai_path"],
         script = workflow.source_path("../scripts/rescale_genlen.py")
     output:
         rescaled_fai = "results/stats/snps/{subsample}/{prefix}.SNPS.{subsample}.{chr}.fai"
