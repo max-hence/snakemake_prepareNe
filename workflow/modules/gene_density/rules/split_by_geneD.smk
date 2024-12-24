@@ -35,7 +35,7 @@ rule geneD_to_bed:
     input:
         density = "results/geneD/{prefix}.{chr}.geneD",
         script = workflow.source_path("../scripts/geneD_to_bed.py")
-    output:nter
+    output:
         low_bed = "results/geneD/{prefix}.lowD.{chr}.bed",
         mid_bed = "results/geneD/{prefix}.midD.{chr}.bed",
         high_bed = "results/geneD/{prefix}.highD.{chr}.bed"
@@ -70,7 +70,7 @@ rule resize_chr:
         fai = "results/stats/snps_na/{prefix}.SNPS.NA.{chr}.fai",
         script = workflow.source_path("../scripts/rescale_genlen.py")
     output:
-        fai = "results/geneD/stats/{prefix}.{density}.{chr}.fai",
+        fai = "results/geneD/stats/{prefix}.{density}.{chr}.fai"
     conda:
         "../envs/gene_density.yml"
     shell:
@@ -84,17 +84,18 @@ rule split_vcf_by_geneD:
         vcf_idx = "results/vcf/snps_na/{prefix}.SNPS.NA.{chr}.vcf.gz.tbi",
         bed = "results/geneD/{prefix}.{density}.{chr}.bed"
     output:
-        splitted_vcf = "results/geneD/vcf/{prefix}.{density}.{chr}.vcf.gz",
+        splitted_vcf = "results/geneD/vcf/{prefix}.{density}.{chr}.vcf",
+        splitted_vcf_gz = "results/geneD/vcf/{prefix}.{density}.{chr}.vcf.gz",
         splitted_vcf_idx = "results/geneD/vcf/{prefix}.{density}.{chr}.vcf.gz.tbi",
         stats = "results/geneD/stats/{prefix}.{density}.{chr}.stats"
     conda: 
         "../envs/gene_density.yml"
     shell:
         """
-        bcftools view -R {input.bed} {input.vcf} -o {output.splitted_vcf}
-        tabix -p vcf {output.splitted_vcf}
-
-        bcftools index -s {output.splitted_vcf} > {output.stats}
+        bcftools view -R {input.bed} {input.vcf} -o {output.splitted_vcf_gz}
+        tabix -p vcf {output.splitted_vcf_gz}
+        bcftools index -s {output.splitted_vcf_gz} > {output.stats}
+        bgzip -cd {output.splitted_vcf_gz} {output.splitted_vcf}
         """
 
 # On passe ça
