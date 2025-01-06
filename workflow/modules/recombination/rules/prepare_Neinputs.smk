@@ -83,7 +83,7 @@ pct_training: 0.67
 nrand: $(((n_seq-2)/4))	$(((n_seq-2)/2))	$(((n_seq-2)*3/4))	$((n_seq-2))
 project_dir: $(pwd)/results/stairway_plot/rec/{wildcards.rec}/{wildcards.prefix}.{wildcards.rec}.{wildcards.chr}/
 stairway_plot_dir: {input.stairway_plot_dir}
-ninput: 200
+ninput: 100
 #random_seed: 6
 mu: {mu}
 year_per_generation: {generation}

@@ -38,7 +38,7 @@ done
 module load snakemake/8.9.0
 
 if [ $unlock == true ]; then
-  snakemake -s $vcf_scripts/snakemake_prepareNe/workflow/Snakefile \
+  snakemake -s $plantlp/vcf_processing/scripts/snakemake_prepareNe/workflow/Snakefile \
     -d $dir \
     --unlock
   exit 1
@@ -48,16 +48,16 @@ mkdir -p $dir/config
 cp $config $dir/config/config.yml
 
 if [ $rerun == true ]; then
-  snakemake -s $vcf_scripts/snakemake_prepareNe/workflow/Snakefile \
+  snakemake -s $plantlp/vcf_processing/scripts/snakemake_prepareNe/workflow/Snakefile \
   -d $dir \
-  --workflow-profile $vcf_scripts/snakemake_prepareNe/profiles/slurm \
+  --workflow-profile $plantlp/vcf_processing/scripts/snakemake_prepareNe/profiles/slurm \
   --use-conda \
   --conda-frontend conda \
   --rerun-incomplete
 else
-  snakemake -s $vcf_scripts/snakemake_prepareNe/workflow/Snakefile \
+  snakemake -s $plantlp/vcf_processing/scripts/snakemake_prepareNe/workflow/Snakefile \
     -d $dir \
-    --workflow-profile $vcf_scripts/snakemake_prepareNe/profiles/slurm \
+    --workflow-profile $plantlp/vcf_processing/scripts/snakemake_prepareNe/profiles/slurm \
     --use-conda \
     --conda-frontend conda
 fi

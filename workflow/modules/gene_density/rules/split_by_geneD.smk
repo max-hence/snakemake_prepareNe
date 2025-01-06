@@ -44,7 +44,7 @@ rule geneD_to_bed:
     shell:
         """
         python3 {input.script} -i {input.density} -o {output.low_bed} -l 0 -u 33
-        python3 {input.script} -i {input.density} -o {output.high_bed} -l 33 -u 66
+        python3 {input.script} -i {input.density} -o {output.mid_bed} -l 33 -u 66
         python3 {input.script} -i {input.density} -o {output.high_bed} -l 66 -u 100
         """
 
