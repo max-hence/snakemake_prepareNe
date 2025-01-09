@@ -21,7 +21,7 @@ rule sfs_small:
         fai = "results/stats/snps/small/{prefix}.SNPS.small.{chr}.fai", # for chr length
         easySFS = config["easySFS_path"]
     output:
-        sfs_dir = directory("results/sfs/snps/small/{prefix}.small.{chr}"),
+        sfs_dir = temp(directory("results/sfs/snps/small/{prefix}.small.{chr}")),
         final_sfs = "results/sfs/snps/small/{prefix}.small.{chr}.sfs"
     conda:
         "../envs/easySFS.yml"
@@ -184,7 +184,7 @@ rule sfs_na:
         fai = "results/stats/snps_na/{prefix}.SNPS.NA.{chr}.fai", # for chr length
         easySFS = config["easySFS_path"],
     output:
-        sfs_dir = directory("results/sfs/snps_na/{prefix}.{chr}"),
+        sfs_dir = temp(directory("results/sfs/snps_na/{prefix}.{chr}")),
         final_sfs = "results/sfs/snps_na/{prefix}.SNPS.NA.{chr}.sfs"
     conda:
         "../envs/easySFS.yml"

@@ -63,3 +63,10 @@ set-resources:
     slurm_account: "plant_lewontin_paradox"
     runtime: 240 # (In minutes)
     cpus_per_task: 2
+
+  rec_sfs_projection:
+    mem_mb: attempt * 50000
+    slurm_partition: "fast"
+    slurm_account: "plant_lewontin_paradox"
+    runtime: 240 # (In minutes)
+    cpus_per_task: 16
