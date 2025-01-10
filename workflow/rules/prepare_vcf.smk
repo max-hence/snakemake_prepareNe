@@ -131,65 +131,41 @@ rule get_best_params:
         """
 
     # Max SNPs
-rule trim_bed_max_ml:
+rule trim_bed:
     """
-        Remove regions in bed where less than <best_sample> indiv have been well called
-    """
-    input:
-        best_sample = "results/sfs/snps/{prefix}.SNPS.best_sample_{sfs_params_method}.txt",
-        raw_bed = "results/bed/raw/{prefix}.raw.{chr}.callable.bed"
-    output:
-        trimmed_bed = "results/bed/snps/{sfs_params_method}/{prefix}.SNPS.{sfs_params_method}.{chr}.callable.bed"
-    conda:
-        "../envs/vcf_processing.yml"
-    log:
-        "logs/{prefix}.{sfs_params_method}.{chr}.log"
-    shell:
-        """
-        sampling_size=$(( $(tail -1 {input.best_sample} | cut -f1 ) / 2 ))
-        bed_length=$(tail -1 {input.raw_bed} | cut -f3)
-        awk -v n=$sampling_size '$4 >= n' {input.raw_bed} > {output.trimmed_bed}
-        """
-
-    ### 10 indiv
-rule trim_bed_small:
-    """
-        Remove regions in bed where less than 10 indiv have been well called
+        Remove regions in bed where less than <n> samples have been well called
     """
     input:
         raw_bed = "results/bed/raw/{prefix}.raw.{chr}.callable.bed"
     output:
-        trimmed_bed = "results/bed/snps/small/{prefix}.SNPS.small.{chr}.callable.bed",
+        trimmed_bed = "results/bed/snps/{subsample}/{prefix}.SNPS.{subsample}.{chr}.callable.bed"
     conda:
         "../envs/vcf_processing.yml"
     log:
-        "logs/{prefix}.{chr}.log"
+        "logs/{prefix}.{subsample}.{chr}.log"
     shell:
         """
-        sampling_size=5
-        bed_length=$(tail -1 {input.raw_bed} | cut -f3)
+        total_sample=$(wc -l {input.pop})
+        sampling_size=$(({wildcards.subsample}*$total_sample/100))
         awk -v n=$sampling_size '$4 >= n' {input.raw_bed} > {output.trimmed_bed}
         """
 
-    ### All indiv
-rule trim_bed_strict:
+rule trim_chr:
     """
-        Remove regions in bed where less than <all_samples> indivs have been well called
+    Trim chromosome
     """
     input:
-        raw_bed = "results/bed/raw/{prefix}.raw.{chr}.callable.bed",
-        pop_path = "results/{prefix}.pop"
+        vcf = 
+        bed = "results/bed/snps/{subsample}/{prefix}.SNPS.{subsample}.{chr}.callable.bed"
     output:
-        trimmed_bed = "results/bed/snps/strict/{prefix}.SNPS.strict.{chr}.callable.bed"
+        trimmed_bed =
     conda:
         "../envs/vcf_processing.yml"
     log:
-        "logs/{prefix}.{chr}.log"
+        "logs/{prefix}.{subsample}.{chr}.log"
     shell:
         """
-        sampling_size=$(wc -l < {input.pop_path})
-        bed_length=$(tail -1 {input.raw_bed} | cut -f3)
-        awk -v n=$sampling_size '$4 >= n' {input.raw_bed} > {output.trimmed_bed}
+        bcftools view ...
         """
 
 rule resize_chr:

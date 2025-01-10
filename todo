@@ -8,6 +8,8 @@
 
 - Pourquoi pas merge les .fai à la fin
 
-- Pas resize quand on enlève les variants non SNPs
-- Pas sous echantillonner pour réequillibrer le nombre de SNPs par cat
-- Faire 3 catégories de gene density
+- Changer la façon donc je filtre en ft de la mappability
+    - 5 catégories : au moins 0,25,50,75,100 % des indiv bien mappés
+    - Faire les 25,50,75,100 d'un côté et 0 à part
+
+    - Faire le 50 mais sans corriger la taille du chr
