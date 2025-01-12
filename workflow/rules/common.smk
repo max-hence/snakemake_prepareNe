@@ -39,8 +39,7 @@ def get_output():
         # out.extend(expand("results/sfs/snps_na/{prefix}.{chr}.png", prefix=final_prefix, chr=chromosomes))
         
         # Stairway Plot inputs
-        out.extend(expand("results/ne_inference/strway_plt/{subsample}/{prefix}.SNPS.{subsample}.{chr}.blueprint", prefix=final_prefix, chr=chromosomes, subsample=sampling_method))
-        out.extend(expand("results/ne_inference/strway_plt/snps_na/{prefix}.SNPS.NA.{chr}.blueprint", prefix=final_prefix, chr=chromosomes))
+        out.extend(expand("results/snps/ne_inference/strway_plt/{prefix}.SNPS.{chr}.blueprint", prefix=final_prefix, chr=chromosomes, subsample=sampling_method))
 
         # SMC++ inputs
         out.extend(expand("results/ne_inference/smcpp/{subsample}/{prefix}.SNPS.{subsample}.{chr}.smc.gz", prefix=final_prefix, chr=chromosomes, subsample=sampling_method))

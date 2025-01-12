@@ -9,6 +9,9 @@ smcpp: "/shared/projects/plant_lewontin_paradox/softwares/smcpp.sif"
 mutation_rate: "7e-9"
 generation_time: 1
 
+# Callability
+callability: True
+
 # Recombination module
 recombination: False
 recmap: ""

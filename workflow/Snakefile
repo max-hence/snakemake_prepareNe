@@ -4,9 +4,7 @@ configfile: "config/config.yml"
 
 # Classic filter
 include: "rules/common.smk"
-include: "rules/filter_callability.smk"
-include: "rules/prepare_strway_plot.smk"
-include: "rules/prepare_smcpp.smk"
+include: "rules/prepare_Neinputs.smk"
 include: "rules/prepare_vcf.smk"
 
 # Force chr name matching in paths
@@ -15,15 +13,16 @@ wildcard_constraints:
     sfs_params_method = "|".join(["ml", "max"]),
     prefix = config["final_prefix"],
     rec_quant = "|".join(["rec1","rec2","rec3"]), # 1 = < 33%, 2 = >33% et <66%, 3= > 66%
-    sampling_method = "|".join(["small","max","ml","strict"])
+    call_filter = "|".join(["small","ml","strict"])
 
-if config["recombination"]:
-    module recombination:
+if config["callability"]:
+    module callability:
         snakefile:
-            "modules/recombination/Snakefile"
+            "modules/callability/Snakefile"
         config:
             config
-use rule * from recombination as rec_*
+
+use rule * from callability as callability_*
 
 if config["density"]:
     module density:
@@ -32,6 +31,14 @@ if config["density"]:
         config:
             config
 use rule * from density as density_*
+
+if config["recombination"]:
+    module recombination:
+        snakefile:
+            "modules/recombination/Snakefile"
+        config:
+            config
+use rule * from recombination as rec_*
 
 rule all:
     input:
