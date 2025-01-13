@@ -6,67 +6,51 @@ retries: 1 # Retry jobs N times.
 
 # These resources will be applied to all rules. Can be overriden on a per-rule basis below.
 default-resources:
-  mem_mb: attempt * 5000
-  slurm_partition: "fast"
-  slurm_account: "plant_lewontin_paradox"
-  runtime: 240 # (In minutes)
+  mem_mb: attempt * 10000
+  slurm_partition: "ecobio,genouest"
+  slurm_account: "mbrault"
+  runtime: 480 # (In minutes)
   cpus_per_task: 2
 
-set-threads:
-  split_vcf: 1
 set-resources:
   sfs_projection:
     mem_mb: attempt * 50000
-    slurm_partition: "fast"
-    slurm_account: "plant_lewontin_paradox"
-    runtime: 720 # (In minutes)
-    cpus_per_task: 16
-
-  sfs_projection_na:
-    mem_mb: attempt * 50000
-    slurm_partition: "fast"
-    slurm_account: "plant_lewontin_paradox"
-    runtime: 720 # (In minutes)
-    cpus_per_task: 16
-
-  sfs_max_ml:
-    mem_mb: attempt * 50000
-    slurm_partition: "fast"
-    slurm_account: "plant_lewontin_paradox"
-    runtime: 720 # (In minutes)
-    cpus_per_task: 16
-
-  sfs_small:
-    mem_mb: attempt * 50000
-    slurm_partition: "fast"
-    slurm_account: "plant_lewontin_paradox"
-    runtime: 720 # (In minutes)
-    cpus_per_task: 16
-
-  sfs_strict:
-    mem_mb: attempt * 50000
-    slurm_partition: "fast"
-    slurm_account: "plant_lewontin_paradox"
-    runtime: 720 # (In minutes)
+    slurm_partition: "ecobio,genouest"
+    slurm_account: "mbrault"
+    runtime: 1440 # (In minutes)
     cpus_per_task: 16
   
-  sfs_na:
-    mem_mb: attempt * 20000
-    slurm_partition: "fast"
-    slurm_account: "plant_lewontin_paradox"
-    runtime: 720 # (In minutes)
+  sfs:
+    mem_mb: attempt * 50000
+    slurm_partition: "ecobio,genouest"
+    slurm_account: "mbrault"
+    runtime: 1440 # (In minutes)
+    cpus_per_task: 16
+  
+  callability_sfs_projection:
+    mem_mb: attempt * 50000
+    slurm_partition: "ecobio,genouest"
+    slurm_account: "mbrault"
+    runtime: 1440 # (In minutes)
     cpus_per_task: 16
 
-  gene_density:
-    mem_mb: attempt * 20000
-    slurm_partition: "fast"
-    slurm_account: "plant_lewontin_paradox"
-    runtime: 240 # (In minutes)
-    cpus_per_task: 2
-
-  rec_sfs_projection:
+  callability_sfs_small:
     mem_mb: attempt * 50000
-    slurm_partition: "fast"
-    slurm_account: "plant_lewontin_paradox"
-    runtime: 240 # (In minutes)
+    slurm_partition: "ecobio,genouest"
+    slurm_account: "mbrault"
+    runtime: 1440 # (In minutes)
+    cpus_per_task: 16
+
+  callability_sfs_strict:
+    mem_mb: attempt * 50000
+    slurm_partition: "ecobio,genouest"
+    slurm_account: "mbrault"
+    runtime: 1440 # (In minutes)
+    cpus_per_task: 16
+
+  callability_sfs_ml:
+    mem_mb: attempt * 50000
+    slurm_partition: "ecobio,genouest"
+    slurm_account: "mbrault"
+    runtime: 1440 # (In minutes)
     cpus_per_task: 16

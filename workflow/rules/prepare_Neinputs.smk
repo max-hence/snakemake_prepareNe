@@ -111,7 +111,7 @@ rule prepare_smcpp:
         Prepare .smc file per chr with the callability.bed as mask
     """
     input:
-        vcf = "results/snps/vcf{prefix}.SNPS.{chr}.vcf.gz",
+        vcf = "results/snps/vcf/{prefix}.SNPS.{chr}.vcf.gz",
         vcf_idx = "results/snps/vcf/{prefix}.SNPS.{chr}.vcf.gz.tbi",
         pop_path = "results/{prefix}.pop",
         fai = "results/snps/stats/{prefix}.SNPS.resized.{chr}.fai",

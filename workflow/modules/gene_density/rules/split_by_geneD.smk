@@ -67,7 +67,7 @@ rule resize_chr:
     "Measure chr size from new bed file"
     input:
         bed = "results/geneD/bed/{prefix}.{density}.{chr}.bed",
-        fai = "results/stats/snps_na/{prefix}.SNPS.NA.{chr}.fai",
+        fai = config["fai_path"], # SNPS_NA and SNPS has same size if no filter
         script = workflow.source_path("../scripts/rescale_genlen.py")
     output:
         fai = "results/geneD/stats/{prefix}.{density}.{chr}.fai"
@@ -80,8 +80,8 @@ rule resize_chr:
 
 rule split_vcf_by_geneD:
     input:
-        vcf = "results/vcf/snps_na/{prefix}.SNPS.NA.{chr}.vcf.gz",
-        vcf_idx = "results/vcf/snps_na/{prefix}.SNPS.NA.{chr}.vcf.gz.tbi",
+        vcf = "results/callability/vcf/{prefix}.SNPS.NA.{chr}.vcf.gz",
+        vcf_idx = "results/callability/vcf/{prefix}.SNPS.NA.{chr}.vcf.gz.tbi",
         bed = "results/geneD/bed/{prefix}.{density}.{chr}.bed"
     output:
         splitted_vcf = "results/geneD/vcf/{prefix}.{density}.{chr}.vcf",

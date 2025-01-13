@@ -5,4 +5,4 @@ def get_chr_list(fai_path:str):
 
 def get_previews(wc):
 
-    return expand("results/callability/sfs/{{prefix}}.SNPS.NA.preview.{{chr}}.txt")
+    return expand("results/callability/sfs/{{prefix}}.SNPS.NA.preview.{chr}.txt", chr=get_chr_list(config["fai_path"]))

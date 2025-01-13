@@ -5,4 +5,4 @@ def get_chr_list(fai_path:str):
 
 def get_previews(wc):
 
-    return expand("results/geneD/sfs/{{prefix}}.{density}.rdmSNP.preview.{chr}.txt", chr=get_chr_list(config["fai_path"]), density=["lowD", "highD"])
+    return expand("results/geneD/sfs/{{prefix}}.{density}.preview.{chr}.txt", chr=get_chr_list(config["fai_path"]), density=["lowD", "midD", "highD"])

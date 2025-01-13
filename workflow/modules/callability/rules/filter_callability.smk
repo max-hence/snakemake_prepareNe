@@ -9,7 +9,7 @@ rule correct_genotype:
         Changes wrongly called genotype into NA
     """
     input:
-        vcf = "results/snps/vcf{prefix}.SNPS.{chr}.vcf",
+        vcf = "results/snps/vcf/{prefix}.SNPS.{chr}.vcf",
         splitted_bed = "results/raw/bed/{prefix}.raw.{chr}.callable.bed",
         script = workflow.source_path("../scripts/correct_genotype.py")
     output:
@@ -17,7 +17,7 @@ rule correct_genotype:
         corrected_vcf_gz = "results/callability/vcf/{prefix}.SNPS.NA.{chr}.vcf.gz",
         corrected_vcf_idx = "results/callability/vcf/{prefix}.SNPS.NA.{chr}.vcf.gz.tbi"
     conda:
-        "../envs/vcf_processing.yml"
+        "../envs/callability.yml"
     shell:
         """
         python3 {input.script} -i {input.vcf} -b {input.splitted_bed} -o {output.corrected_vcf}
@@ -39,7 +39,7 @@ rule sfs_projection:
         output:
             preview = "results/callability/sfs/{prefix}.SNPS.NA.preview.{chr}.txt"
         conda:
-            "../envs/easySFS.yml"
+            "../envs/callability.yml"
         log:
             "logs/na/{prefix}.{chr}"
         shell:
@@ -58,7 +58,7 @@ rule get_best_params:
     output:
         best_sample = "results/callability/sfs/{prefix}.SNPS.NA.best_sample.txt"
     conda:
-        "../envs/vcf_processing.yml"
+        "../envs/callability.yml"
     shell:
         """ 
             python3 {input.script} -i {input.previews} -m "ml" -o {output.best_sample}
@@ -75,9 +75,9 @@ rule trim_bed_ml:
         splitted_bed = "results/raw/bed/{prefix}.raw.{chr}.callable.bed",
         script = workflow.source_path("../scripts/rescale_genlen.py")
     output:
-        trimmed_bed = "results/callability/bed/{prefix}.SNPS.NA.{chr}.callable.bed",
+        trimmed_bed = "results/callability/bed/ml/{prefix}.SNPS.NA.ml.{chr}.callable.bed",
     conda:
-        "../envs/vcf_processing.yml"
+        "../envs/callability.yml"
     shell:
         """
             sampling_size=$(( $(tail -1 {input.best_sample} | cut -f1 ) / 2 ))
@@ -94,9 +94,9 @@ rule trim_bed_strict:
         pop_path = "results/{prefix}.pop",
         script = workflow.source_path("../scripts/rescale_genlen.py")
     output:
-        trimmed_bed = "results/callability/bed/{prefix}.SNPS.NA.strict.{chr}.callable.bed",
+        trimmed_bed = "results/callability/bed/strict/{prefix}.SNPS.NA.strict.{chr}.callable.bed",
     conda:
-        "../envs/vcf_processing.yml"
+        "../envs/callability.yml"
     shell:
         """
             sampling_size=$(wc -l < {input.pop_path})
@@ -111,9 +111,9 @@ rule trim_bed_small:
         splitted_bed = "results/raw/bed/{prefix}.raw.{chr}.callable.bed",
         script = workflow.source_path("../scripts/rescale_genlen.py")
     output:
-        trimmed_bed = "results/callability/bed/{prefix}.SNPS.NA.small.{chr}.callable.bed",
+        trimmed_bed = "results/callability/bed/small/{prefix}.SNPS.NA.small.{chr}.callable.bed",
     conda:
-        "../envs/vcf_processing.yml"
+        "../envs/callability.yml"
     shell:
         """
             sampling_size=10
@@ -125,8 +125,8 @@ rule resize_chr:
         Resize chr length based on trimmed bed
     """
     input:
-        trimmed_bed = "results/callability/bed/{prefix}.SNPS.NA.{call_filter}.{chr}.callable.bed",
-        fai = "results/snps/stats/{prefix}.SNPS.{chr}.fai",
+        trimmed_bed = "results/callability/bed/{call_filter}/{prefix}.SNPS.NA.{call_filter}.{chr}.callable.bed",
+        fai = "results/snps/stats/{prefix}.SNPS.resized.{chr}.fai",
         script = workflow.source_path("../scripts/rescale_genlen.py")
     output:
         resized_fai = "results/callability/stats/{prefix}.SNPS.NA.{call_filter}.{chr}.fai"

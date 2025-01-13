@@ -1,0 +1,15 @@
+name: callability
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python=3.12
+  - vcftools==0.1.16
+  - bcftools==1.18
+  - pip:
+    - matplotlib
+    - numpy
+    - pandas
+    - gffpandas
+    - scipy

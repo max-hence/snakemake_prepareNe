@@ -15,7 +15,7 @@ rule sfs_small:
         sfs_dir = temp(directory("results/callability/sfs/small/{prefix}.small.{chr}")),
         final_sfs = "results/callability/sfs/small/{prefix}.small.{chr}.sfs"
     conda:
-        "../envs/easySFS.yml"
+        "../envs/callability.yml"
     log:
         "logs/{prefix}.{chr}.log"
     shell:
@@ -47,7 +47,7 @@ rule sfs_strict:
         sfs_dir = temp(directory("results/callability/sfs/strict/{prefix}.strict.{chr}")),
         final_sfs = "results/callability/sfs/strict/{prefix}.strict.{chr}.sfs"
     conda:
-        "../envs/easySFS.yml"
+        "../envs/callability.yml"
     log:
         "logs/{prefix}.{chr}.log"
     shell:
@@ -72,7 +72,7 @@ rule sfs_ml:
         Run easySFS with previously calculated sample size
     """
     input:
-        vcf = "results/callability/vcf/{prefix}.SNPS.NA{chr}.vcf",
+        vcf = "results/callability/vcf/{prefix}.SNPS.NA.{chr}.vcf",
         best_sample = "results/callability/sfs/{prefix}.SNPS.NA.best_sample.txt",
         pop_path = "results/{prefix}.pop",
         easySFS = config["easySFS_path"]
@@ -80,7 +80,7 @@ rule sfs_ml:
         sfs_dir = temp(directory("results/callability/sfs/{prefix}.ml.{chr}")),
         final_sfs = "results/callability/sfs/ml/{prefix}.ml.{chr}.sfs"
     conda:
-        "../envs/easySFS.yml"
+        "../envs/callability.yml"
     log:
         "logs/{prefix}.{chr}.log"
     shell:
@@ -102,10 +102,10 @@ rule sfs_ml:
 rule prepare_strway_plot:
     input:
         sfs = "results/callability/sfs/{call_filter}/{prefix}.{call_filter}.{chr}.sfs",
-        fai = "results/callability/stats/{prefix}.{call_filter}.{chr}.fai", # for chr length
+        fai = "results/callability/stats/{prefix}.SNPS.NA.{call_filter}.{chr}.fai", # for chr length
         stairway_plot_dir = config["stairway_plot_dir"]
     output:
-        blueprint = "results/callability/ne_inference/strway_plt/{prefix}.SNPS.NA.{call_filter}.{chr}.blueprint"
+        blueprint = "results/callability/ne_inference/strway_plt/{call_filter}/{prefix}.SNPS.NA.{call_filter}.{chr}.blueprint"
     log:
         "logs/{prefix}.{call_filter}.{chr}.log"
     shell:
@@ -153,7 +153,7 @@ rule flip_bed:
         mask_gz = "results/callability/bed/{call_filter}/{prefix}.SNPS.NA.{call_filter}.{chr}.callable.flipped.bed.gz",
         mask_idx = "results/callability/bed/{call_filter}/{prefix}.SNPS.NA.{call_filter}.{chr}.callable.flipped.bed.gz.tbi"
     conda:
-        "../envs/vcf_processing.yml"
+        "../envs/callability.yml"
     log:
         "logs/{prefix}.{call_filter}.{chr}.log"
     shell:
@@ -170,17 +170,17 @@ rule prepare_smcpp:
         Prepare .smc file per chr with the callability.bed as mask
     """
     input:
-        vcf = "results/callability/vcf/{prefix}.SNPS.NA.{call_filter}.{chr}.vcf.gz",
-        vcf_idx = "results/callability/vcf/{prefix}.SNPS.NA.{call_filter}.{chr}.vcf.gz.tbi",
+        vcf = "results/callability/vcf/{prefix}.SNPS.NA.{chr}.vcf.gz",
+        vcf_idx = "results/callability/vcf/{prefix}.SNPS.NA.{chr}.vcf.gz.tbi",
         pop_path = "results/{prefix}.pop",
-        fai = "results/callability/stats/{prefix}.SNPS.NA.{chr}.fai",
+        fai = "results/callability/stats/{prefix}.SNPS.NA.{call_filter}.{chr}.fai",
         mask = "results/callability/bed/{call_filter}/{prefix}.SNPS.NA.{call_filter}.{chr}.callable.flipped.bed.gz",
         mask_idx = "results/callability/bed/{call_filter}/{prefix}.SNPS.NA.{call_filter}.{chr}.callable.flipped.bed.gz.tbi",
         smcpp = config["smcpp"]
     output:
         smcpp_input = "results/callability/ne_inference/smcpp/{call_filter}/{prefix}.SNPS.NA.{call_filter}.{chr}.smc.gz"
     conda:
-        "../envs/vcf_processing.yml"
+        "../envs/callability.yml"
     log:
         "logs/{prefix}.{call_filter}.{chr}.log"
     shell:

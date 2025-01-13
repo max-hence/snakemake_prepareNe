@@ -48,7 +48,7 @@ rule trim_bed:
     input:
         best_sample = "results/geneD/sfs/{prefix}.best_params.txt",
         fai = "results/geneD/stats/{prefix}.{density}.{chr}.fai",
-        raw_bed = "results/bed/raw/{prefix}.raw.{chr}.callable.bed",
+        raw_bed = "results/raw/bed/{prefix}.raw.{chr}.callable.bed",
         script = workflow.source_path("../scripts/rescale_genlen.py")
     output:
         trimmed_bed = "results/geneD/bed/{prefix}.{density}.{chr}.callable.bed",
@@ -167,7 +167,7 @@ rule flip_bed:
     """
     input:
         bed = "results/geneD/bed/{prefix}.{density}.{chr}.callable.bed",
-        raw_bed = "results/bed/raw/{prefix}.raw.{chr}.callable.bed",
+        raw_bed = "results/raw/bed/{prefix}.raw.{chr}.callable.bed",
         script = workflow.source_path("../scripts/reverse_bed.py")
     output:
         mask = temp("results/geneD/bed/{prefix}.{density}.callable.flipped.{chr}.bed"),

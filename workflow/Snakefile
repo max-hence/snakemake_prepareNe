@@ -10,10 +10,7 @@ include: "rules/prepare_vcf.smk"
 # Force chr name matching in paths
 wildcard_constraints:
     chr = "|".join(get_chr_list(config["fai_path"])),
-    sfs_params_method = "|".join(["ml", "max"]),
     prefix = config["final_prefix"],
-    rec_quant = "|".join(["rec1","rec2","rec3"]), # 1 = < 33%, 2 = >33% et <66%, 3= > 66%
-    call_filter = "|".join(["small","ml","strict"])
 
 if config["callability"]:
     module callability:
@@ -22,7 +19,7 @@ if config["callability"]:
         config:
             config
 
-use rule * from callability as callability_*
+    use rule * from callability as callability_*
 
 if config["density"]:
     module density:
@@ -30,7 +27,7 @@ if config["density"]:
             "modules/gene_density/Snakefile"
         config:
             config
-use rule * from density as density_*
+    use rule * from density as density_*
 
 if config["recombination"]:
     module recombination:
@@ -38,7 +35,7 @@ if config["recombination"]:
             "modules/recombination/Snakefile"
         config:
             config
-use rule * from recombination as rec_*
+    use rule * from recombination as recombination_*
 
 rule all:
     input:
