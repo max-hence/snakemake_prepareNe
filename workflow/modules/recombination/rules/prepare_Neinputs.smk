@@ -107,7 +107,7 @@ rule flip_bed:
     """
     input:
         bed = "results/rec/bed/{prefix}.{rec}.{chr}.callable.bed",
-        raw_bed = "results/bed/raw/{prefix}.raw.{chr}.callable.bed",
+        raw_bed = "results/raw/bed/{prefix}.raw.{chr}.callable.bed",
         script = workflow.source_path("../scripts/reverse_bed.py")
     output:
         mask = temp("results/rec/bed/{prefix}.{rec}.callable.flipped.{chr}.bed"),

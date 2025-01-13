@@ -35,7 +35,7 @@ rule resize_chr:
     "Measure size of chr chunks"
         input:
             bed = "results/rec/bed/{prefix}.{rec}.{chr}.bed",
-            fai = "results/stats/snps_na/{prefix}.SNPS.NA.{chr}.fai",
+            fai = config["fai_path"],
             script = workflow.source_path("../scripts/rescale_genlen.py")
         output:
             fai = "results/rec/stats/{prefix}.{rec}.{chr}.fai",
@@ -50,8 +50,8 @@ rule split_vcf:
     "Remove regions outside rec threshold to rerun easySFS on that subtable"
 
     input:
-        vcf = "results/vcf/snps_na/{prefix}.SNPS.NA.{chr}.vcf.gz", # vcf corrected by callability
-        vcf_idx = "results/vcf/snps_na/{prefix}.SNPS.NA.{chr}.vcf.gz.tbi",
+        vcf = "results/callability/vcf/{prefix}.SNPS.NA.{chr}.vcf.gz", # vcf corrected by callability
+        vcf_idx = "results/callability/vcf/{prefix}.SNPS.NA.{chr}.vcf.gz.tbi",
         bed = "results/rec/bed/{prefix}.{rec}.{chr}.bed"
     output:
         splitted_vcf = temp("results/rec/vcf/{prefix}.{rec}.{chr}.vcf"),
@@ -148,7 +148,7 @@ rule intersect_beds:
     """
     input:
         bed = "results/rec/bed/{prefix}.{rec}.{chr}.bed",
-        callable_bed = "results/bed/raw/{prefix}.raw.{chr}.callable.bed",
+        callable_bed = "results/raw/bed/{prefix}.raw.{chr}.callable.bed",
         script = workflow.source_path("../scripts/merge_bed.py")
     output:
         intersect_bed = "results/rec/bed/{prefix}.{rec}.intersect.{chr}.bed"

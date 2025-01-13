@@ -15,7 +15,7 @@ DENSITY_CAT: list = ["lowD", "midD", "highD"]
 rule all:
     input:
         # Plot gene density
-        expand("results/geneD/stats/{prefix}.{chr}.geneD.png", prefix=FINAL_PREFIX, chr=CHROMOSOMES),
+        #expand("results/geneD/stats/{prefix}.{chr}.geneD.png", prefix=FINAL_PREFIX, chr=CHROMOSOMES),
         # Plot sfs
         # expand("results/geneD/sfs/{density}/{prefix}.{density}.{chr}.png", prefix=FINAL_PREFIX, density=DENSITY_CAT, chr=CHROMOSOMES),
         # Stairway Plot inputs

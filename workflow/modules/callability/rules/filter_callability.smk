@@ -132,6 +132,6 @@ rule resize_chr:
         resized_fai = "results/callability/stats/{prefix}.SNPS.NA.{call_filter}.{chr}.fai"
     shell:
         """
-        python3 {input.script} -i {output.trimmed_bed} -f {input.fai} \
+        python3 {input.script} -i {input.trimmed_bed} -f {input.fai} \
             -o {output.resized_fai} --method "bed"
         """

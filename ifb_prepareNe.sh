@@ -1,7 +1,7 @@
 #! /bin/bash
 #SBATCH --job-name=PREPARENE
-#SBATCH -o /shared/projects/plant_lewontin_paradox/vcf_processing/genouest_log/prepare_Ne/%x.%j.out
-#SBATCH -e /shared/projects/plant_lewontin_paradox/vcf_processing/genouest_log/prepare_Ne/%x.%j.err
+#SBATCH -o /shared/projects/plant_lewontin_paradox/02_VCF_PROCESSING/genouest_log/prepare_Ne/%x.%j.out
+#SBATCH -e /shared/projects/plant_lewontin_paradox/02_VCF_PROCESSING/genouest_log/prepare_Ne/%x.%j.err
 #SBATCH -p long
 #SBATCH --time=2-00
 #SBATCH --mem=10G
@@ -38,7 +38,7 @@ done
 module load snakemake/8.9.0
 
 if [ $unlock == true ]; then
-  snakemake -s $plantlp/vcf_processing/scripts/snakemake_prepareNe/workflow/Snakefile \
+  snakemake -s $plantlp/02_VCF_PROCESSING/scripts/snakemake_prepareNe/workflow/Snakefile \
     -d $dir \
     --unlock
   exit 1
@@ -48,16 +48,16 @@ mkdir -p $dir/config
 cp $config $dir/config/config.yml
 
 if [ $rerun == true ]; then
-  snakemake -s $plantlp/vcf_processing/scripts/snakemake_prepareNe/workflow/Snakefile \
+  snakemake -s $plantlp/02_VCF_PROCESSING/scripts/snakemake_prepareNe/workflow/Snakefile \
   -d $dir \
-  --workflow-profile $plantlp/vcf_processing/scripts/snakemake_prepareNe/profiles/slurm \
+  --workflow-profile $plantlp/02_VCF_PROCESSING/scripts/snakemake_prepareNe/profiles/slurm \
   --use-conda \
   --conda-frontend conda \
   --rerun-incomplete
 else
-  snakemake -s $plantlp/vcf_processing/scripts/snakemake_prepareNe/workflow/Snakefile \
+  snakemake -s $plantlp/02_VCF_PROCESSING/scripts/snakemake_prepareNe/workflow/Snakefile \
     -d $dir \
-    --workflow-profile $plantlp/vcf_processing/scripts/snakemake_prepareNe/profiles/slurm \
+    --workflow-profile $plantlp/02_VCF_PROCESSING/scripts/snakemake_prepareNe/profiles/slurm \
     --use-conda \
     --conda-frontend conda
 fi

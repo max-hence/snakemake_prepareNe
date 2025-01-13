@@ -11,6 +11,7 @@ rule sfs:
     """
     input:
         vcf = "results/snps/vcf/{prefix}.SNPS.{chr}.vcf",
+        best_sample = "results/snps/sfs/{prefix}.SNPS.best_sample.txt",
         pop_path = "results/{prefix}.pop",
         easySFS = config["easySFS_path"]
     output:
@@ -22,7 +23,7 @@ rule sfs:
         "logs/{prefix}.{chr}.log"
     shell:
         """
-            sampling_size=10
+            sampling_size=$(( $(tail -1 {input.best_sample} | cut -f1 )))
             python3 {input.easySFS} -i {input.vcf} -p {input.pop_path} \
             --dtype 'int' \
             --proj $sampling_size \
