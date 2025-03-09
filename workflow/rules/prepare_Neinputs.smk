@@ -1,7 +1,6 @@
 # Prepare inputs for Stairway Plot
 # Per chr analysis
 
-include: "common.smk"
 mu = config["mutation_rate"]
 generation = config["generation_time"]
 

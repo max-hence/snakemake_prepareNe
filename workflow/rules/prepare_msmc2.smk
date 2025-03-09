@@ -1,6 +1,5 @@
 # Prepare inputs for MSMC2
 
-include: "common.smk"
 mu = config["mutation_rate"]
 generation = config["generation_time"]
 time_segments = "4*1+25*1+4*1+6*1"
@@ -75,8 +74,7 @@ rule split_callable:
         "logs/{prefix}.{sample}.{chr}.log"
     shell:
         """
-        grep {params.sample} {input.callability} | cut -f1,2,3 | \
-            bgzip > {output.callability_by_sample}
+        grep {params.sample} {input.callability} | cut -f1,2,3 | bgzip > {output.callability_by_sample}
         """
 
 rule mutlihetsep:
