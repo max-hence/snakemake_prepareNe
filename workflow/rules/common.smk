@@ -21,8 +21,7 @@ def get_chr_list(fai_path:str):
 def get_output():
     final_prefix = config["final_prefix"]
     chromosomes: list = get_chr_list(config["fai_path"])
-    # rec: list = ["rec1","rec2","rec3"]
-    # sampling_method: list = ["small","ml","strict"]
+    samples: list = get_sample_list(config["pop_path"])
     out: list  = []
 
     if final_prefix == "":
