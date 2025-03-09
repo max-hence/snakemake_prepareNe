@@ -32,6 +32,7 @@ def get_output():
     #out.extend(expand("results/snps/ne_inference/strway_plt/{prefix}.SNPS.{chr}.blueprint", prefix=final_prefix, chr=chromosomes))
     # SMC++ inputs
     #out.extend(expand("results/snps/ne_inference/smcpp/{prefix}.SNPS.{chr}.smc.gz", prefix=final_prefix, chr=chromosomes))
+    out.extend(expand("results/snps/ne_inference/msmc2/inference/{prefix}.SNPS.{sample}", prefix=final_prefix, sample=samples))
 
     if config["callability"]:
         out.extend(rules.callability_all.input)
@@ -46,3 +47,7 @@ def get_output():
 def get_previews(preview_path:str):
     chromosomes = get_chr_list(config["fai_path"])
     return expand(preview_path, prefix=config["final_prefix"], chr=chromosomes)
+
+def get_sample_list(pop_path:str):
+    with open(pop_path) as pop:
+        return [line.split("\t")[0] for line in pop]

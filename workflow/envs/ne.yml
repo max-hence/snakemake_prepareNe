@@ -1,0 +1,11 @@
+name: ne
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - python
+  - msmc2
+  - psmc
+  - pandas
+  - matplotlib

@@ -1,24 +1,25 @@
 # Config
-vcf_path: "/shared/projects/plant_lewontin_paradox/ne/data/cgrandiflora/vcf/cgrandiflora_PRJNA275635.SNPS.NA.KB870812.1.vcf.gz"
-fai_path: "/shared/projects/plant_lewontin_paradox/ne/data/cgrandiflora/stats/GCA_000375325.1.KB870812.1.fai"
-bed_path: "/shared/projects/plant_lewontin_paradox/ne/data/cgrandiflora/cgrandiflora_PRJNA275635.raw.KB870812.1.callable.bed"
-final_prefix: "cgrandiflora_PRJNA275635"
-easySFS_path: "/shared/projects/plant_lewontin_paradox/softwares/easySFS/easySFS.py"
-stairway_plot_dir: "/shared/projects/plant_lewontin_paradox/softwares/stairway_plot_es"
-smcpp: "/shared/projects/plant_lewontin_paradox/softwares/smcpp.sif"
+vcf_path: "/projects/plantlp/03_NE_INFERENCE/data/cgrandiflora/original_data/cgrandiflora_PRJNA275635_raw.vcf.gz"
+fai_path: "/projects/plantlp/00_DATA/data/cgrandiflora/GCA_000375325.1.chr1.fna.fai"
+bed_path: "/projects/plantlp/03_NE_INFERENCE/data/cgrandiflora/original_data/cgrandiflora_PRJNA275635_callable_all_samples.bed"
+pop_path: "/projects/plantlp/03_NE_INFERENCE/data/cgrandiflora/pop/cgrandiflora_PRJNA275635.10.txt"
+final_prefix: "test"
+easySFS_path: "/projects/plantlp/softwares/easySFS/easySFS.py"
+stairway_plot_dir: "/projects/plantlp/softwares/strway_plot/stairway_plot_es"
+smcpp: "/projects/plantlp/softwares/smcpp/smcpp.sif"
 mutation_rate: "7e-9"
 generation_time: 1
 
 # Callability
-callability: True
+callability: False
 
 # Recombination module
 recombination: False
 recmap: ""
 
 # Density
-density: True
-annotation: "/shared/projects/plant_lewontin_paradox/vcf_processing/data/toy_example/GCF_000375325.1_Caprub1_0_genomic.KB870812.1.gff"
-window_size: 10000
+density: False
+annotation: ""
+window_size: 100000
 
 stop: False # True to do only density module
