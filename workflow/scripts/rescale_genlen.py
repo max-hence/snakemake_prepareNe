@@ -42,11 +42,10 @@ def rescale_bed(input_bed:str, input_fai:str, output_fai:str):
 
     with open(output_fai, "w") as output:
         with open(input_fai, "r") as fai:
-            for line in fai:
-                chr_id = line.split("\t")[0]
-                end_line = '\t'.join(line.split('\t')[2:])
-
-                output.write(f"{chr_id}\t{correct_size}\t{end_line}")
+            for row in fai:
+                chr_id = row.split("\t")[0]
+                if chr_id == bed_table["chrom"].unique()[0]:
+                    output.write(f"{chr_id}\t{correct_size}\n")
 
 
 def parse_command_line():

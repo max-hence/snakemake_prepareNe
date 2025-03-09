@@ -40,6 +40,25 @@ rule get_best_params:
         python3 {input.get_sfs_param} -i {input.previews} -m "ml" -o {output.best_sample}
         """
 
+rule intersect_beds:
+    """
+    Trim callable bed to keep only regions inside the given rec threshold (merging btw 2 beds)
+    """
+    input:
+        bed = "results/geneD/bed/{prefix}.{density}.{chr}.bed",
+        callable_bed = "results/raw/bed/{prefix}.raw.{chr}.callable.bed",
+        script = workflow.source_path("../scripts/merge_bed.py")
+    output:
+        intersect_bed = "results/geneD/bed/{prefix}.{density}.intersect.{chr}.bed"
+    conda:
+        "../envs/gene_density.yml"
+    log:
+        "logs/rec/{prefix}.{density}.{chr}.log"
+    shell:
+        """
+        python3 {input.script} -i {input.bed} -b {input.callable_bed} -o {output.intersect_bed}
+        """
+
 rule trim_bed:
     """
         Remove regions in callability.bed where less than <best_sample> indiv have been well called
@@ -48,18 +67,17 @@ rule trim_bed:
     input:
         best_sample = "results/geneD/sfs/{prefix}.best_params.txt",
         fai = "results/geneD/stats/{prefix}.{density}.{chr}.fai",
-        raw_bed = "results/raw/bed/{prefix}.raw.{chr}.callable.bed",
+        intersect_bed = "results/geneD/bed/{prefix}.{density}.intersect.{chr}.bed",
         script = workflow.source_path("../scripts/rescale_genlen.py")
     output:
         trimmed_bed = "results/geneD/bed/{prefix}.{density}.{chr}.callable.bed",
-        rescaled_fai = "results/geneD/stats/{prefix}.{density}.trimmed.{chr}.fai"
+        rescaled_fai = "results/geneD/stats/{prefix}.{density}.resized.{chr}.fai"
     conda:
         "../envs/gene_density.yml"
     shell:
         """
         sampling_size=$(( $(tail -1 {input.best_sample} | cut -f1 ) / 2 ))
-        bed_length=$(tail -1 {input.raw_bed} | cut -f3)
-        awk -v n=$sampling_size '$4 >= n' {input.raw_bed} > {output.trimmed_bed}
+        awk -v n=$sampling_size '$4 >= n' {input.intersect_bed} > {output.trimmed_bed}
         
         python3 {input.script} -i {output.trimmed_bed} -f {input.fai} \
         -o {output.rescaled_fai} --method bed
@@ -76,7 +94,7 @@ rule sfs:
     input:
         vcf = "results/geneD/vcf/{prefix}.{density}.{chr}.vcf",
         pop_path = "results/{prefix}.pop",
-        fai = "results/geneD/stats/{prefix}.{density}.trimmed.{chr}.fai", # for chr length
+        fai = "results/geneD/stats/{prefix}.{density}.resized.{chr}.fai", # for chr length
         best_sample = "results/geneD/sfs/{prefix}.best_params.txt",
         easySFS = config["easySFS_path"]
     output:
@@ -125,7 +143,7 @@ rule prepare_strway_plot:
     """
     input:
         sfs = "results/geneD/sfs/{density}/{prefix}.{density}.{chr}.sfs",
-        fai = "results/geneD/stats/{prefix}.{density}.trimmed.{chr}.fai", # for chr length
+        fai = "results/geneD/stats/{prefix}.{density}.resized.{chr}.fai", # for chr length
         stairway_plot_dir = config["stairway_plot_dir"],
     output:
         blueprint = "results/geneD/ne_inference/strway_plt/{density}/{prefix}.{density}.{chr}.blueprint"
@@ -192,7 +210,7 @@ rule prepare_smcpp:
         vcf = "results/geneD/vcf/{prefix}.{density}.{chr}.vcf.gz",
         vcf_idx = "results/geneD/vcf/{prefix}.{density}.{chr}.vcf.gz.tbi",
         pop_path = "results/{prefix}.pop",
-        fai = "results/geneD/stats/{prefix}.{density}.{chr}.fai",
+        fai = "results/geneD/stats/{prefix}.{density}.resized.{chr}.fai",
         mask = "results/geneD/bed/{prefix}.{density}.callable.flipped.{chr}.bed.gz",
         mask_idx = "results/geneD/bed/{prefix}.{density}.callable.flipped.{chr}.bed.gz.tbi",
         smcpp = config["smcpp"]

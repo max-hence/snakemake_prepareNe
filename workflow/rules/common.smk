@@ -29,9 +29,9 @@ def get_output():
         raise (WorkflowError("'final_prefix' is not set in config."))
 
     # Stairway Plot inputs
-    out.extend(expand("results/snps/ne_inference/strway_plt/{prefix}.SNPS.{chr}.blueprint", prefix=final_prefix, chr=chromosomes))
+    #out.extend(expand("results/snps/ne_inference/strway_plt/{prefix}.SNPS.{chr}.blueprint", prefix=final_prefix, chr=chromosomes))
     # SMC++ inputs
-    out.extend(expand("results/snps/ne_inference/smcpp/{prefix}.SNPS.{chr}.smc.gz", prefix=final_prefix, chr=chromosomes))
+    #out.extend(expand("results/snps/ne_inference/smcpp/{prefix}.SNPS.{chr}.smc.gz", prefix=final_prefix, chr=chromosomes))
 
     if config["callability"]:
         out.extend(rules.callability_all.input)

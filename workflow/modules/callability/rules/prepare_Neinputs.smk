@@ -1,4 +1,6 @@
 
+mu = config["mutation_rate"]
+generation = config["generation_time"]
     #################################
     ### For filter on Callability ###
     #################################
@@ -20,7 +22,7 @@ rule sfs_small:
         "logs/{prefix}.{chr}.log"
     shell:
         """
-            sampling_size=10
+            sampling_size=20
             python3 {input.easySFS} -i {input.vcf} -p {input.pop_path} \
             --dtype 'int' \
             --proj $sampling_size \
@@ -112,6 +114,10 @@ rule prepare_strway_plot:
         """
         n_seq=$(( $(wc -w < {input.sfs}) * 2))
         total_sites=$(cut -f2 {input.fai})
+        echo $n_seq >&2
+        echo $total_sites >&2
+        echo $n_seq
+        echo $total_sites
         echo "# Settings for {wildcards.prefix}; chr : {wildcards.chr}; simple filtering on biallelic snps
 popid: {wildcards.prefix}
 nseq: $n_seq
@@ -128,7 +134,7 @@ ninput: 100
 #random_seed: 6
 mu: {mu}
 year_per_generation: {generation}
-plot_title: {wildcards.prefix}.SNPS.NA.{wildcards.chr}
+plot_title: {wildcards.prefix}.SNPS.NA.{wildcards.call_filter}.{wildcards.chr}
 xrange: 0.1,10000
 yrange: 0,0
 xspacing: 2

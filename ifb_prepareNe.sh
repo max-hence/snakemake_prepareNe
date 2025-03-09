@@ -9,7 +9,7 @@
 . /shared/projects/plant_lewontin_paradox/paths.sh
 
 echo "Command :
-$snp_scripts/go_snparcher.sh $@" >&2
+$vcf_scripts/ifb_prepareNe.sh $@" >&2
 
 unlock=false
 rerun=false

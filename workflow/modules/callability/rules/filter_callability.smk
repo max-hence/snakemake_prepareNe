@@ -130,6 +130,8 @@ rule resize_chr:
         script = workflow.source_path("../scripts/rescale_genlen.py")
     output:
         resized_fai = "results/callability/stats/{prefix}.SNPS.NA.{call_filter}.{chr}.fai"
+    conda:
+        "../envs/callability.yml"
     shell:
         """
         python3 {input.script} -i {input.trimmed_bed} -f {input.fai} \

@@ -39,6 +39,7 @@ def geneD2bed(geneD_path:str, output_bed:str, low_range:int=0, up_range:int=100,
 
         if start_intervall != None: bedfile.write(f"{row["seq_id"]}\t{start_intervall}\t{new_end}\n")
 
+
 def parse_command_line():
     parser = ArgumentParser(
         formatter_class=RawDescriptionHelpFormatter,

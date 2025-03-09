@@ -44,16 +44,16 @@ rule prepare_strway_plot:
     input:
         sfs = "results/snps/sfs/{prefix}.{chr}.sfs",
         fai = "results/snps/stats/{prefix}.SNPS.resized.{chr}.fai", # for chr length
-        stairway_plot_dir = config["stairway_plot_dir"],
+        stairway_plot_dir = config["stairway_plot_dir"]
     output:
         blueprint = "results/snps/ne_inference/strway_plt/{prefix}.SNPS.{chr}.blueprint"
     log:
         "logs/{prefix}.{chr}.log"
     shell:
         """
-            n_seq=$(( $(wc -w < {input.sfs}) * 2))
-            total_sites=$(cut -f2 {input.fai})
-            echo "# Settings for {wildcards.prefix}; chr : {wildcards.chr}; simple filtering on biallelic snps
+        n_seq=$(( $(wc -w < {input.sfs}) * 2))
+        total_sites=$(cut -f2 {input.fai})
+        echo "# Settings for {wildcards.prefix}; chr : {wildcards.chr}; simple filtering on biallelic snps
 popid: {wildcards.prefix}
 nseq: $n_seq
 L: $total_sites
@@ -65,7 +65,7 @@ pct_training: 0.67
 nrand: $(((n_seq-2)/4))	$(((n_seq-2)/2))	$(((n_seq-2)*3/4))	$((n_seq-2))
 project_dir: $(pwd)/results/ne_inference/stairway_plot/{wildcards.prefix}.SNPS.{wildcards.chr}/
 stairway_plot_dir: {input.stairway_plot_dir}
-ninput: 200
+ninput: 100
 #random_seed: 6
 mu: {mu}
 year_per_generation: {generation}

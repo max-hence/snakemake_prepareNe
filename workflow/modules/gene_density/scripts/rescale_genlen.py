@@ -1,6 +1,5 @@
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from pandas import read_csv
-import sys
 
 def rescale_snps(snps_stats:str, raw_stats:str, input_fai:str, output_fai:str):
     """ Rescale chr length based on removed variants
@@ -43,12 +42,11 @@ def rescale_bed(input_bed:str, input_fai:str, output_fai:str):
 
     with open(output_fai, "w") as output:
         with open(input_fai, "r") as fai:
-            for line in fai:
-                chr_id = line.split("\t")[0]
-                end_line = '\t'.join(line.split('\t')[2:])
-
-                output.write(f"{chr_id}\t{correct_size}\t{end_line}")
-
+            for row in fai:
+                chr_id = row.split("\t")[0]
+                if chr_id == bed_table["chrom"].unique()[0]:
+                    output.write(f"{chr_id}\t{correct_size}\n")
+    print(chr_id, correct_size)
 
 def parse_command_line():
     parser = ArgumentParser(
@@ -70,11 +68,6 @@ def parse_command_line():
     parser.add_argument('--method', type=str,
         help="Tells which rescaling method to apply (snp or bed)"
     )
-    
-    ## if no args then return help message
-    if len(sys.argv) == 4:
-        parser.print_help()
-        sys.exit(1)
 
     args = parser.parse_args()
 
@@ -87,7 +80,7 @@ if __name__== "__main__":
 
     if args.method == "snp":
         rescale_snps(args.input, args.raw, args.fai, args.output)
-
+        # inutile
     elif args.method == "bed":
         rescale_bed(args.input, args.fai, args.output)
     else:

@@ -18,4 +18,4 @@ rule all:
         # Stairway Plot inputs
         expand("results/callability/ne_inference/strway_plt/{call_filter}/{prefix}.SNPS.NA.{call_filter}.{chr}.blueprint", prefix=FINAL_PREFIX, chr=CHROMOSOMES, call_filter=CALLABILITY_FILTER),
         # SMC++ inputs
-        expand("results/callability/ne_inference/smcpp/{call_filter}/{prefix}.SNPS.NA.{call_filter}.{chr}.smc.gz", prefix=FINAL_PREFIX, chr=CHROMOSOMES, call_filter=CALLABILITY_FILTER)
+        #expand("results/callability/ne_inference/smcpp/{call_filter}/{prefix}.SNPS.NA.{call_filter}.{chr}.smc.gz", prefix=FINAL_PREFIX, chr=CHROMOSOMES, call_filter=CALLABILITY_FILTER)
