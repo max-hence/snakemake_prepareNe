@@ -39,10 +39,10 @@ rule remove_na:
         "logs/{prefix}.{sample}.{chr}.log"
     shell:
         """
-        bcftools view -H -i 'GT~"\."' {input.vcf_by_sample} | \
+        bcftools view -H -i 'GT~"\\."' {input.vcf_by_sample} | \
             cut -f1,2 > {output.na_pos}
 
-        bcftools view -e 'GT~"\."' -Oz -o {output.vcf_no_na} {input.vcf_by_sample}
+        bcftools view -e 'GT~"\\."' -Oz -o {output.vcf_no_na} {input.vcf_by_sample}
         tabix -p vcf {input.vcf_by_sample}
         """
         
@@ -68,6 +68,8 @@ rule split_callable:
         callability = "results/raw/bed/{prefix}.raw.{chr}.callable.bed"
     output:
         callability_by_sample = "results/raw/bed/{prefix}.raw.{sample}.{chr}.callable.bed"
+    conda:
+        "../envs/vcf_processing.yml"
     params:
         sample="{wildcards.sample}"
     log:
